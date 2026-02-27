@@ -12,6 +12,13 @@
         <span class="badge bg-dark fs-6">Geld: @(farm?.Money.ToString("F2"))</span>
     </div>
 
+    @if (farm != null && !farm.AllocationUnlocked)
+    {
+        <div class="alert alert-warning">
+            Ressourcenverteilung ist gesperrt. Kaufe die Muehle um sie freizuschalten!
+        </div>
+    }
+
     <div class="row">
         @if (userResources != null && allocations != null)
         {
@@ -35,20 +42,28 @@
 
                             <p>Verkaufspreis: @(ur.Resource.SellPrice) pro Stueck</p>
 
-                            <hr />
-                            <h6>Verteilung</h6>
-                            <form asp-action="UpdateAllocation" method="post">
-                                <input type="hidden" name="resourceId" value="@(ur.ResourceId)" />
-                                <div class="mb-2">
-                                    <label>Verkauf: <strong id="sell-@(ur.ResourceId)">@(sellPct)%</strong></label>
-                                    <br />
-                                    <label>Weiterverarbeitung: <strong id="process-@(ur.ResourceId)">@(100 - sellPct)%</strong></label>
-                                </div>
-                                <input type="range" class="form-range" name="sellPercentage"
-                                       min="0" max="100" step="5" value="@(sellPct)"
-                                       oninput="document.getElementById('sell-@(ur.ResourceId)').innerText=this.value+'%'; document.getElementById('process-@(ur.ResourceId)').innerText=(100-this.value)+'%';" />
-                                <button type="submit" class="btn btn-sm btn-primary mt-2 w-100">Speichern</button>
-                            </form>
+                            @if (farm != null && farm.AllocationUnlocked)
+                            {
+                                <hr />
+                                <h6>Verteilung</h6>
+                                <form asp-action="UpdateAllocation" method="post">
+                                    <input type="hidden" name="resourceId" value="@(ur.ResourceId)" />
+                                    <div class="mb-2">
+                                        <label>Verkauf: <strong id="sell-@(ur.ResourceId)">@(sellPct)%</strong></label>
+                                        <br />
+                                        <label>Weiterverarbeitung: <strong id="process-@(ur.ResourceId)">@(100 - sellPct)%</strong></label>
+                                    </div>
+                                    <input type="range" class="form-range" name="sellPercentage"
+                                           min="0" max="100" step="5" value="@(sellPct)"
+                                           oninput="document.getElementById('sell-@(ur.ResourceId)').innerText=this.value+'%'; document.getElementById('process-@(ur.ResourceId)').innerText=(100-this.value)+'%';" />
+                                    <button type="submit" class="btn btn-sm btn-primary mt-2 w-100">Speichern</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <hr />
+                                <p class="text-muted">Verteilung gesperrt (100% Verkauf)</p>
+                            }
                         </div>
                     </div>
                 </div>

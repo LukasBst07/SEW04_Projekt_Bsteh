@@ -27,6 +27,8 @@ namespace SEW04_Projekt_Bsteh
 
             builder.Services.AddScoped<GameCalculationService>();
 
+            builder.Services.AddScoped<AchievementService>();
+
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();

@@ -2,12 +2,10 @@
 
 namespace SEW04_Projekt_Bsteh.Data
 {
-    // Befuellt die Datenbank mit Stammdaten beim ersten Start
     public static class DbInitializer
     {
         public static void Initialize(ApplicationDbContext db)
         {
-            // Wenn schon Ressourcen da sind, nicht nochmal seeden
             if (db.Resources.Any()) return;
 
             // === RESSOURCEN ===
@@ -23,9 +21,9 @@ namespace SEW04_Projekt_Bsteh.Data
             {
                 Name = "Feld",
                 Description = "Produziert Weizen aus dem Nichts.",
-                BaseCost = 0m, // Startgebaeude, kostenlos
-                BaseProductionRate = 1.0, // 1 Weizen pro Sekunde
-                InputResourceId = null, // Kein Input noetig
+                BaseCost = 0m,
+                BaseProductionRate = 1.0,
+                InputResourceId = null,
                 OutputResourceId = weizen.Id,
                 InputPerOutput = 0
             };
@@ -35,10 +33,10 @@ namespace SEW04_Projekt_Bsteh.Data
                 Name = "Muehle",
                 Description = "Verarbeitet Weizen zu Mehl.",
                 BaseCost = 500m,
-                BaseProductionRate = 0.5, // 0.5 Mehl pro Sekunde
+                BaseProductionRate = 0.5,
                 InputResourceId = weizen.Id,
                 OutputResourceId = mehl.Id,
-                InputPerOutput = 2.0 // 2 Weizen = 1 Mehl
+                InputPerOutput = 2.0
             };
 
             var baeckerei = new Building
@@ -46,10 +44,10 @@ namespace SEW04_Projekt_Bsteh.Data
                 Name = "Baeckerei",
                 Description = "Verarbeitet Mehl zu Brot.",
                 BaseCost = 2000m,
-                BaseProductionRate = 0.25, // 0.25 Brot pro Sekunde
+                BaseProductionRate = 0.25,
                 InputResourceId = mehl.Id,
                 OutputResourceId = brot.Id,
-                InputPerOutput = 3.0 // 3 Mehl = 1 Brot
+                InputPerOutput = 3.0
             };
 
             db.Buildings.AddRange(feld, muehle, baeckerei);
@@ -59,39 +57,67 @@ namespace SEW04_Projekt_Bsteh.Data
             db.Achievements.AddRange(
                 new Achievement
                 {
-                    Name = "Erste Ernte",
-                    Description = "Produziere zum ersten Mal Weizen.",
-                    GemReward = 1
-                },
-                new Achievement
-                {
                     Name = "Muehlenbesitzer",
                     Description = "Kaufe die Muehle.",
-                    GemReward = 2
+                    BonusType = "UnlockAllocation",
+                    BonusValue = 0,
+                    BonusDescription = "Schaltet die Ressourcenverteilung frei."
                 },
                 new Achievement
                 {
                     Name = "Baeckermeister",
                     Description = "Kaufe die Baeckerei.",
-                    GemReward = 3
-                },
-                new Achievement
-                {
-                    Name = "Ressourcen-Manager",
-                    Description = "Schalte die Ressourcenverteilung frei.",
-                    GemReward = 5
+                    BonusType = "StorageBoost",
+                    BonusValue = 0.5,
+                    BonusDescription = "Lagerkapazitaet aller Ressourcen +50%"
                 },
                 new Achievement
                 {
                     Name = "Erste 1000 Muenzen",
                     Description = "Erreiche 1000 Muenzen.",
-                    GemReward = 2
+                    BonusType = "ProductionBoost",
+                    BonusValue = 0.1,
+                    BonusDescription = "Produktionsrate aller Gebaeude +10%"
+                },
+                new Achievement
+                {
+                    Name = "Vollstaendige Kette",
+                    Description = "Schalte alle 3 Gebaeude frei.",
+                    BonusType = "UpgradeDiscount",
+                    BonusValue = 0.15,
+                    BonusDescription = "Upgrade-Kosten -15%"
+                },
+                new Achievement
+                {
+                    Name = "Lagermeister",
+                    Description = "Fuelle ein Lager komplett.",
+                    BonusType = "StorageBoost",
+                    BonusValue = 1.0,
+                    BonusDescription = "Lagerkapazitaet aller Ressourcen nochmal +100%"
                 },
                 new Achievement
                 {
                     Name = "Erste 10000 Muenzen",
                     Description = "Erreiche 10000 Muenzen.",
-                    GemReward = 5
+                    BonusType = "SellBoost",
+                    BonusValue = 0.2,
+                    BonusDescription = "Verkaufspreise +20%"
+                },
+                new Achievement
+                {
+                    Name = "Upgrade-Anfaenger",
+                    Description = "Bringe ein Upgrade auf Level 5.",
+                    BonusType = "ProductionBoost",
+                    BonusValue = 0.15,
+                    BonusDescription = "Produktionsrate aller Gebaeude +15%"
+                },
+                new Achievement
+                {
+                    Name = "Markthaendler",
+                    Description = "Verkaufe manuell 100 Einheiten am Marktplatz.",
+                    BonusType = "SellBoost",
+                    BonusValue = 0.1,
+                    BonusDescription = "Verkaufspreise +10%"
                 }
             );
             db.SaveChanges();

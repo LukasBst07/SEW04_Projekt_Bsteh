@@ -14,15 +14,18 @@ namespace SEW04_Projekt_Bsteh.Controllers
         private readonly ApplicationDbContext _db;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly GameCalculationService _calc;
+        private readonly AchievementService _achievements;
 
-        public GameController(ApplicationDbContext db, UserManager<IdentityUser> userManager, GameCalculationService calc)
+        public GameController(ApplicationDbContext db, UserManager<IdentityUser> userManager,
+            GameCalculationService calc, AchievementService achievements)
         {
             _db = db;
             _userManager = userManager;
             _calc = calc;
+            _achievements = achievements;
         }
 
-        // Farm laden, bei Bedarf erstellen, Idle berechnen
+        // Farm laden, bei Bedarf erstellen, Idle berechnen, Achievements pruefen
         private async Task<Farm?> LoadFarmWithCalculation()
         {
             var userId = _userManager.GetUserId(User);
@@ -36,8 +39,8 @@ namespace SEW04_Projekt_Bsteh.Controllers
             }
 
             await _calc.CalculateOfflineProgress(farm.Id);
+            await _achievements.CheckAchievements(farm.Id);
 
-            // Neu laden weil Berechnung Werte geaendert hat
             return await _db.Farms.FirstOrDefaultAsync(f => f.UserId == userId);
         }
 
@@ -90,7 +93,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
         public async Task<IActionResult> BuyBuilding(int buildingId)
         {
             var farm = await LoadFarmWithCalculation();
-            if (farm == null) return RedirectToAction("Dashboard");
+            if (farm == null) return RedirectToAction("Buildings");
 
             var userBuilding = await _db.UserBuildings
                 .Include(ub => ub.Building)
@@ -114,6 +117,9 @@ namespace SEW04_Projekt_Bsteh.Controllers
             userBuilding.IsUnlocked = true;
 
             await _db.SaveChangesAsync();
+
+            // Achievements nochmal pruefen nach Kauf
+            await _achievements.CheckAchievements(farm.Id);
 
             TempData["Success"] = $"{userBuilding.Building.Name} gekauft!";
             return RedirectToAction("Buildings");
@@ -146,6 +152,9 @@ namespace SEW04_Projekt_Bsteh.Controllers
             var cost = userBuilding.Building.BaseCost * (decimal)(currentLevel + 1) * 0.5m;
             if (cost < 50) cost = 50;
 
+            // Achievement-Rabatt anwenden
+            cost *= (1 - (decimal)farm.AchievementUpgradeDiscount);
+
             if (farm.Money < cost)
             {
                 TempData["Error"] = $"Nicht genug Geld! Kosten: {cost:F0}";
@@ -168,12 +177,16 @@ namespace SEW04_Projekt_Bsteh.Controllers
                         .FirstOrDefaultAsync(ur => ur.FarmId == farm.Id && ur.ResourceId == userBuilding.Building.OutputResourceId);
                     if (outputResource != null)
                     {
-                        outputResource.MaxStorage = 100 * (1 + userBuilding.CapacityLevel * 0.25);
+                        outputResource.MaxStorage = 100 * (1 + userBuilding.CapacityLevel * 0.25)
+                            * (1 + farm.AchievementStorageBonus);
                     }
                     break;
             }
 
             await _db.SaveChangesAsync();
+
+            // Achievements nochmal pruefen nach Upgrade
+            await _achievements.CheckAchievements(farm.Id);
 
             TempData["Success"] = $"{userBuilding.Building.Name} - {upgradeType} auf Level {currentLevel + 1} verbessert!";
             return RedirectToAction("Buildings");
@@ -209,6 +222,13 @@ namespace SEW04_Projekt_Bsteh.Controllers
         {
             var farm = await LoadFarmWithCalculation();
             if (farm == null) return RedirectToAction("Resources");
+
+            // Nur wenn freigeschaltet
+            if (!farm.AllocationUnlocked)
+            {
+                TempData["Error"] = "Ressourcenverteilung ist noch gesperrt!";
+                return RedirectToAction("Resources");
+            }
 
             sellPercentage = Math.Clamp(sellPercentage, 0, 100);
 
@@ -261,7 +281,6 @@ namespace SEW04_Projekt_Bsteh.Controllers
             return View();
         }
 
-        // Manueller Verkauf einer bestimmten Menge
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SellResource(int resourceId, double amount)
@@ -275,7 +294,6 @@ namespace SEW04_Projekt_Bsteh.Controllers
 
             if (userResource == null) return RedirectToAction("Market");
 
-            // Nicht mehr verkaufen als vorhanden
             amount = Math.Min(amount, userResource.Amount);
             if (amount <= 0)
             {
@@ -283,11 +301,16 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 return RedirectToAction("Market");
             }
 
-            var income = (decimal)amount * userResource.Resource.SellPrice;
+            // Preis mit Achievement-Bonus
+            var price = userResource.Resource.SellPrice * (1 + (decimal)farm.AchievementSellBonus);
+            var income = (decimal)amount * price;
             userResource.Amount -= amount;
             farm.Money += income;
 
             await _db.SaveChangesAsync();
+
+            // Achievements pruefen nach Verkauf
+            await _achievements.CheckAchievements(farm.Id);
 
             TempData["Success"] = $"{amount:F1} {userResource.Resource.Name} fuer {income:F2} verkauft!";
             return RedirectToAction("Market");
@@ -326,7 +349,6 @@ namespace SEW04_Projekt_Bsteh.Controllers
             {
                 UserId = userId,
                 Money = 100m,
-                Gems = 0,
                 RebirthMultiplier = 1.0,
                 LastCalculated = DateTime.UtcNow
             };

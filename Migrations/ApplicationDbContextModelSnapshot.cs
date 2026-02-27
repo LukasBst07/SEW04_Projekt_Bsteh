@@ -219,13 +219,23 @@ namespace SEW04_Projekt_Bsteh.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("BonusDescription")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BonusType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("BonusValue")
+                        .HasColumnType("REAL");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("GemReward")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -283,7 +293,19 @@ namespace SEW04_Projekt_Bsteh.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Gems")
+                    b.Property<double>("AchievementProductionBonus")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("AchievementSellBonus")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("AchievementStorageBonus")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("AchievementUpgradeDiscount")
+                        .HasColumnType("REAL");
+
+                    b.Property<bool>("AllocationUnlocked")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastCalculated")

@@ -3,8 +3,8 @@
 
     var farm = ViewBag.Farm as SEW04_Projekt_Bsteh.Models.Farm;
     var userBuildings = ViewBag.UserBuildings as List<SEW04_Projekt_Bsteh.Models.UserBuilding>;
-    var achievementCount = (int)ViewBag.AchievementCount;
-    var totalAchievements = (int)ViewBag.TotalAchievements;
+    var achievementCount = ViewBag.AchievementCount as int? ?? 0;
+    var totalAchievements = ViewBag.TotalAchievements as int? ?? 0;
     var userEmail = ViewBag.UserEmail as string;
 }
 
@@ -21,7 +21,6 @@
                 <div class="card-body">
                     <p>E-Mail: <strong>@(userEmail)</strong></p>
                     <p>Geld: <strong>@(farm?.Money.ToString("F2"))</strong></p>
-                    <p>Gems: <strong>@(farm?.Gems)</strong></p>
                 </div>
             </div>
         </div>
@@ -39,6 +38,20 @@
                     <p>Multiplikator: <strong>x@(farm?.RebirthMultiplier.ToString("F1"))</strong></p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Aktive Boni -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">Aktive Achievement-Boni</h5>
+        </div>
+        <div class="card-body">
+            <p>Verteilung: <strong>@(farm != null && farm.AllocationUnlocked ? "Freigeschaltet" : "Gesperrt")</strong></p>
+            <p>Produktionsbonus: <strong>+@((farm?.AchievementProductionBonus * 100 ?? 0).ToString("F0"))%</strong></p>
+            <p>Verkaufsbonus: <strong>+@((farm?.AchievementSellBonus * 100 ?? 0).ToString("F0"))%</strong></p>
+            <p>Upgrade-Rabatt: <strong>-@((farm?.AchievementUpgradeDiscount * 100 ?? 0).ToString("F0"))%</strong></p>
+            <p>Lagerbonus: <strong>+@((farm?.AchievementStorageBonus * 100 ?? 0).ToString("F0"))%</strong></p>
         </div>
     </div>
 

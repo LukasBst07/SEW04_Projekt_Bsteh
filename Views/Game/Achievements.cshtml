@@ -7,22 +7,47 @@
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Achievements</h1>
-        <span class="badge bg-info fs-6">Gems: @(farm?.Gems)</span>
-    </div>
+    <h1>Achievements</h1>
 
     <!-- Such/Filter -->
-    <div class="mb-3">
-        <input type="text" id="achievementSearch" class="form-control" placeholder="Achievement suchen..." oninput="filterAchievements()" />
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <input type="text" id="achievementSearch" class="form-control" placeholder="Achievement suchen..." oninput="filterAchievements()" />
+        </div>
+        <div class="col-md-3">
+            <select id="achievementFilter" class="form-select" onchange="filterAchievements()">
+                <option value="all">Alle</option>
+                <option value="unlocked">Freigeschaltet</option>
+                <option value="locked">Noch offen</option>
+            </select>
+        </div>
     </div>
-    <div class="mb-3">
-        <select id="achievementFilter" class="form-select" onchange="filterAchievements()">
-            <option value="all">Alle</option>
-            <option value="unlocked">Freigeschaltet</option>
-            <option value="locked">Noch offen</option>
-        </select>
-    </div>
+
+    <!-- Aktive Boni Uebersicht -->
+    @if (farm != null)
+    {
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Aktive Boni</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <p>Verteilung: <strong>@(farm.AllocationUnlocked ? "Freigeschaltet" : "Gesperrt")</strong></p>
+                    </div>
+                    <div class="col-md-3">
+                        <p>Produktion: <strong>+@((farm.AchievementProductionBonus * 100).ToString("F0"))%</strong></p>
+                    </div>
+                    <div class="col-md-3">
+                        <p>Verkaufspreis: <strong>+@((farm.AchievementSellBonus * 100).ToString("F0"))%</strong></p>
+                    </div>
+                    <div class="col-md-3">
+                        <p>Lagerkapazitaet: <strong>+@((farm.AchievementStorageBonus * 100).ToString("F0"))%</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="row" id="achievementList">
         @if (allAchievements != null && userAchievements != null)
@@ -35,10 +60,12 @@
                         <div class="card-body">
                             <h5>@(achievement.Name)</h5>
                             <p>@(achievement.Description)</p>
-                            <p>Belohnung: <strong>@(achievement.GemReward) Gems</strong></p>
+                            <hr />
+                            <p class="mb-1"><strong>Bonus:</strong></p>
+                            <p>@(achievement.BonusDescription)</p>
                             @if (unlocked)
                             {
-                                <span class="badge bg-success">Erledigt</span>
+                                <span class="badge bg-success">Freigeschaltet</span>
                             }
                             else
                             {
