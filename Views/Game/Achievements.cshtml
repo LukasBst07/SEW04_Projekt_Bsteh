@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Achievements";
+
+    var farm = ViewBag.Farm as SEW04_Projekt_Bsteh.Models.Farm;
+    var userAchievements = ViewBag.UserAchievements as List<int>;
+    var allAchievements = ViewBag.AllAchievements as List<SEW04_Projekt_Bsteh.Models.Achievement>;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Achievements</h1>
+        <span class="badge bg-info fs-6">Gems: @(farm?.Gems)</span>
+    </div>
+
+    <!-- Such/Filter -->
+    <div class="mb-3">
+        <input type="text" id="achievementSearch" class="form-control" placeholder="Achievement suchen..." oninput="filterAchievements()" />
+    </div>
+    <div class="mb-3">
+        <select id="achievementFilter" class="form-select" onchange="filterAchievements()">
+            <option value="all">Alle</option>
+            <option value="unlocked">Freigeschaltet</option>
+            <option value="locked">Noch offen</option>
+        </select>
+    </div>
+
+    <div class="row" id="achievementList">
+        @if (allAchievements != null && userAchievements != null)
+        {
+            @foreach (var achievement in allAchievements)
+            {
+                var unlocked = userAchievements.Contains(achievement.Id);
+                <div class="col-md-4 achievement-card" data-unlocked="@(unlocked.ToString().ToLower())" data-name="@(achievement.Name.ToLower())">
+                    <div class="card mb-3 @(unlocked ? "border-success" : "")">
+                        <div class="card-body">
+                            <h5>@(achievement.Name)</h5>
+                            <p>@(achievement.Description)</p>
+                            <p>Belohnung: <strong>@(achievement.GemReward) Gems</strong></p>
+                            @if (unlocked)
+                            {
+                                <span class="badge bg-success">Erledigt</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Noch offen</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurueck zum Dashboard</a>
+</div>
+
+@section Scripts {
+    <script>
+        function filterAchievements() {
+            var search = document.getElementById('achievementSearch').value.toLowerCase();
+            var filter = document.getElementById('achievementFilter').value;
+            var cards = document.querySelectorAll('.achievement-card');
+
+            cards.forEach(function (card) {
+                var name = card.getAttribute('data-name');
+                var unlocked = card.getAttribute('data-unlocked');
+
+                var matchSearch = name.includes(search);
+                var matchFilter = filter === 'all'
+                    || (filter === 'unlocked' && unlocked === 'true')
+                    || (filter === 'locked' && unlocked === 'false');
+
+                card.style.display = (matchSearch && matchFilter) ? '' : 'none';
+            });
+        }
+    </script>
+}

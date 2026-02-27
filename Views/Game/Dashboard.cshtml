@@ -1,0 +1,125 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+
+    var farm = ViewBag.Farm as SEW04_Projekt_Bsteh.Models.Farm;
+    var userBuildings = ViewBag.UserBuildings as List<SEW04_Projekt_Bsteh.Models.UserBuilding>;
+    var userResources = ViewBag.UserResources as List<SEW04_Projekt_Bsteh.Models.UserResource>;
+}
+
+<div class="container mt-4">
+    <h1>HarvestDynasty - Dashboard</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <!-- Finanzen -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>Geld</h6>
+                    <h4>@(farm?.Money.ToString("F2"))</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>Gems</h6>
+                    <h4>@(farm?.Gems)</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>Multiplikator</h6>
+                    <h4>x@(farm?.RebirthMultiplier.ToString("F1"))</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>Rebirths</h6>
+                    <h4>@(farm?.RebirthCount)</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ressourcen Kurzuebersicht -->
+    <h4>Ressourcen</h4>
+    <div class="row mb-4">
+        @if (userResources != null)
+        {
+            @foreach (var ur in userResources)
+            {
+                <div class="col-md-4">
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6>@(ur.Resource.Name)</h6>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: @((ur.Amount / ur.MaxStorage * 100).ToString("F0"))%">
+                                    @(ur.Amount.ToString("F1")) / @(ur.MaxStorage)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Gebaeude Kurzuebersicht -->
+    <h4>Gebaeude</h4>
+    <div class="row mb-4">
+        @if (userBuildings != null)
+        {
+            @foreach (var ub in userBuildings)
+            {
+                <div class="col-md-4">
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6>@(ub.Building.Name)</h6>
+                            @if (ub.IsUnlocked)
+                            {
+                                <span class="badge bg-success">Aktiv</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Gesperrt</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Navigation -->
+    <h4>Aktionen</h4>
+    <div class="row">
+        <div class="col-md-2">
+            <a asp-action="Buildings" class="btn btn-primary w-100 mb-2">Gebaeude</a>
+        </div>
+        <div class="col-md-2">
+            <a asp-action="Resources" class="btn btn-success w-100 mb-2">Ressourcen</a>
+        </div>
+        <div class="col-md-2">
+            <a asp-action="Market" class="btn btn-warning w-100 mb-2">Marktplatz</a>
+        </div>
+        <div class="col-md-2">
+            <a asp-action="Achievements" class="btn btn-info w-100 mb-2">Achievements</a>
+        </div>
+        <div class="col-md-2">
+            <a asp-action="Profile" class="btn btn-secondary w-100 mb-2">Profil</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,59 @@
+﻿@{
+    ViewData["Title"] = "Profil";
+
+    var farm = ViewBag.Farm as SEW04_Projekt_Bsteh.Models.Farm;
+    var userBuildings = ViewBag.UserBuildings as List<SEW04_Projekt_Bsteh.Models.UserBuilding>;
+    var achievementCount = (int)ViewBag.AchievementCount;
+    var totalAchievements = (int)ViewBag.TotalAchievements;
+    var userEmail = ViewBag.UserEmail as string;
+}
+
+<div class="container mt-4">
+    <h1>Profil</h1>
+
+    <div class="row">
+        <!-- Spieler Info -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Spieler</h5>
+                </div>
+                <div class="card-body">
+                    <p>E-Mail: <strong>@(userEmail)</strong></p>
+                    <p>Geld: <strong>@(farm?.Money.ToString("F2"))</strong></p>
+                    <p>Gems: <strong>@(farm?.Gems)</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiken -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Statistiken</h5>
+                </div>
+                <div class="card-body">
+                    <p>Gebaeude freigeschaltet: <strong>@(userBuildings?.Count(ub => ub.IsUnlocked) ?? 0) / @(userBuildings?.Count ?? 0)</strong></p>
+                    <p>Achievements: <strong>@(achievementCount) / @(totalAchievements)</strong></p>
+                    <p>Rebirths: <strong>@(farm?.RebirthCount)</strong></p>
+                    <p>Multiplikator: <strong>x@(farm?.RebirthMultiplier.ToString("F1"))</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rebirth -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">Rebirth</h5>
+        </div>
+        <div class="card-body">
+            <p>Setze deine Farm zurueck und erhalte einen dauerhaften Multiplikator.</p>
+            <p>Aktueller Multiplikator: <strong>x@(farm?.RebirthMultiplier.ToString("F1"))</strong></p>
+            <p>Nach Rebirth: <strong>x@((farm != null ? farm.RebirthMultiplier + 0.5 : 1.5).ToString("F1"))</strong></p>
+            <p class="text-muted">Rebirth-Funktion wird bald verfuegbar sein.</p>
+        </div>
+    </div>
+
+    <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurueck zum Dashboard</a>
+</div>
