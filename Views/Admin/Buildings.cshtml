@@ -1,0 +1,64 @@
+﻿@model List<SEW04_Projekt_Bsteh.Models.Building>
+@{
+    ViewData["Title"] = "Gebaeude verwalten";
+}
+
+<div class="container mt-4">
+    <h1>Gebaeude verwalten</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @foreach (var b in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">@(b.Name)</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="EditBuilding" method="post">
+                    <input type="hidden" name="id" value="@(b.Id)" />
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" class="form-control" value="@(b.Name)" />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Beschreibung</label>
+                            <input type="text" name="description" class="form-control" value="@(b.Description)" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Kaufpreis</label>
+                            <input type="number" name="baseCost" class="form-control" step="1" value="@(b.BaseCost)" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Produktion/s</label>
+                            <input type="number" name="baseProductionRate" class="form-control" step="0.01" value="@(b.BaseProductionRate)" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Input pro Output</label>
+                            <input type="number" name="inputPerOutput" class="form-control" step="0.1" value="@(b.InputPerOutput)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Input</label>
+                            <input type="text" class="form-control" value="@(b.InputResource?.Name ?? "Keiner")" disabled />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Output</label>
+                            <input type="text" class="form-control" value="@(b.OutputResource.Name)" disabled />
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Speichern</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary mt-3">Zurueck</a>
+</div>

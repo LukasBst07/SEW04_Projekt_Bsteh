@@ -1,0 +1,193 @@
+﻿@{
+    ViewData["Title"] = "Spieler bearbeiten";
+
+    var user = ViewBag.User as SEW04_Projekt_Bsteh.Models.ApplicationUser;
+    var farm = ViewBag.Farm as SEW04_Projekt_Bsteh.Models.Farm;
+    var userBuildings = ViewBag.UserBuildings as List<SEW04_Projekt_Bsteh.Models.UserBuilding>;
+    var userResources = ViewBag.UserResources as List<SEW04_Projekt_Bsteh.Models.UserResource>;
+    var userAchievements = ViewBag.UserAchievements as List<SEW04_Projekt_Bsteh.Models.UserAchievement>;
+}
+
+<div class="container mt-4">
+    <h1>Spieler bearbeiten: @(user?.DisplayName)</h1>
+    <p>E-Mail: <strong>@(user?.Email)</strong></p>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (farm != null)
+    {
+        <!-- Farm-Daten -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Farm-Daten / Cheats</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="UpdatePlayer" method="post">
+                    <input type="hidden" name="userId" value="@(user?.Id)" />
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Geld</label>
+                            <input type="number" name="money" class="form-control" step="0.01" value="@(farm.Money)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Rebirth-Multiplikator</label>
+                            <input type="number" name="rebirthMultiplier" class="form-control" step="0.1" value="@(farm.RebirthMultiplier)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Rebirth-Anzahl</label>
+                            <input type="number" name="rebirthCount" class="form-control" value="@(farm.RebirthCount)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Verteilung freigeschaltet</label>
+                            <select name="allocationUnlocked" class="form-select">
+                                @if (farm.AllocationUnlocked)
+                                {
+                                    <option value="true" selected>Ja</option>
+                                    <option value="false">Nein</option>
+                                }
+                                else
+                                {
+                                    <option value="true">Ja</option>
+                                    <option value="false" selected>Nein</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Produktionsbonus</label>
+                            <input type="number" name="productionBonus" class="form-control" step="0.01" value="@(farm.AchievementProductionBonus)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Verkaufsbonus</label>
+                            <input type="number" name="sellBonus" class="form-control" step="0.01" value="@(farm.AchievementSellBonus)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Upgrade-Rabatt</label>
+                            <input type="number" name="upgradeDiscount" class="form-control" step="0.01" value="@(farm.AchievementUpgradeDiscount)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Lagerbonus</label>
+                            <input type="number" name="storageBonus" class="form-control" step="0.01" value="@(farm.AchievementStorageBonus)" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Farm speichern</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Gebaeude -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Gebaeude</h5>
+            </div>
+            <div class="card-body">
+                @if (userBuildings != null)
+                {
+                    @foreach (var ub in userBuildings)
+                    {
+                        <form asp-action="UpdateBuilding" method="post" class="mb-3 p-3" style="background: rgba(0,0,0,0.03); border-radius: 8px;">
+                            <input type="hidden" name="userId" value="@(user?.Id)" />
+                            <input type="hidden" name="buildingId" value="@(ub.BuildingId)" />
+                            <h6>@(ub.Building.Name)</h6>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <label class="form-label">Freigeschaltet</label>
+                                    <select name="isUnlocked" class="form-select">
+                                        @if (ub.IsUnlocked)
+                                        {
+                                            <option value="true" selected>Ja</option>
+                                            <option value="false">Nein</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="true">Ja</option>
+                                            <option value="false" selected>Nein</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Produktion Lv.</label>
+                                    <input type="number" name="productionLevel" class="form-control" value="@(ub.ProductionLevel)" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Effizienz Lv.</label>
+                                    <input type="number" name="efficiencyLevel" class="form-control" value="@(ub.EfficiencyLevel)" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Kapazitaet Lv.</label>
+                                    <input type="number" name="capacityLevel" class="form-control" value="@(ub.CapacityLevel)" />
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-warning btn-sm w-100">Speichern</button>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Ressourcen -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Ressourcen</h5>
+            </div>
+            <div class="card-body">
+                @if (userResources != null)
+                {
+                    @foreach (var ur in userResources)
+                    {
+                        <form asp-action="UpdateResource" method="post" class="mb-3 p-3" style="background: rgba(0,0,0,0.03); border-radius: 8px;">
+                            <input type="hidden" name="userId" value="@(user?.Id)" />
+                            <input type="hidden" name="resourceId" value="@(ur.ResourceId)" />
+                            <h6>@(ur.Resource.Name)</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">Menge</label>
+                                    <input type="number" name="amount" class="form-control" step="0.1" value="@(ur.Amount)" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Max Lager</label>
+                                    <input type="number" name="maxStorage" class="form-control" step="1" value="@(ur.MaxStorage)" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-warning btn-sm w-100">Speichern</button>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Freigeschaltete Achievements (@(userAchievements?.Count ?? 0))</h5>
+            </div>
+            <div class="card-body">
+                @if (userAchievements != null && userAchievements.Any())
+                {
+                    @foreach (var ua in userAchievements)
+                    {
+                        <span class="badge bg-success me-1 mb-1">@(ua.Achievement.Name)</span>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">Keine Achievements.</p>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">Dieser Spieler hat noch keine Farm.</div>
+    }
+
+    <a asp-action="Players" class="btn btn-secondary mt-3">Zurueck zur Spielerliste</a>
+</div>

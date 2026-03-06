@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SEW04_Projekt_Bsteh.Data;
+using Microsoft.AspNetCore.Identity;
 using SEW04_Projekt_Bsteh.Models;
 using SEW04_Projekt_Bsteh.Services;
 
@@ -12,11 +12,11 @@ namespace SEW04_Projekt_Bsteh.Controllers
     public class GameController : Controller
     {
         private readonly ApplicationDbContext _db;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly GameCalculationService _calc;
         private readonly AchievementService _achievements;
 
-        public GameController(ApplicationDbContext db, UserManager<IdentityUser> userManager,
+        public GameController(ApplicationDbContext db, UserManager<ApplicationUser> userManager,
             GameCalculationService calc, AchievementService achievements)
         {
             _db = db;

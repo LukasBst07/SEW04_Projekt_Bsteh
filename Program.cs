@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SEW04_Projekt_Bsteh.Data;
+using SEW04_Projekt_Bsteh.Models;
 using SEW04_Projekt_Bsteh.Services;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace SEW04_Projekt_Bsteh
 {
@@ -12,36 +12,44 @@ namespace SEW04_Projekt_Bsteh
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Connection String aus appsettings.json lesen
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-            // SQLite statt SQL Server
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(connectionString));
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
-
-            builder.Services.AddScoped<GameCalculationService>();
-
-            builder.Services.AddScoped<AchievementService>();
+            // ApplicationUser statt IdentityUser + Rollen aktivieren
+            builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = false;
+                options.Password.RequireDigit = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 4;
+            })
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddScoped<GameCalculationService>();
+            builder.Services.AddScoped<AchievementService>();
+
             var app = builder.Build();
 
-            // Migrationen beim Start automatisch anwenden (Container-friendly)
+            // Migration + Seed
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 db.Database.Migrate();
                 DbInitializer.Initialize(db);
+
+                // Rollen und Admin erstellen
+                CreateRolesAndAdmin(scope.ServiceProvider).Wait();
             }
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
@@ -57,6 +65,7 @@ namespace SEW04_Projekt_Bsteh
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(
@@ -65,6 +74,44 @@ namespace SEW04_Projekt_Bsteh
             app.MapRazorPages();
 
             app.Run();
+        }
+
+        // Rollen erstellen und Standard-Admin anlegen
+        private static async Task CreateRolesAndAdmin(IServiceProvider services)
+        {
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+
+            // Rollen anlegen
+            string[] roles = { "Admin", "Spieler" };
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
+
+            // Admin-Account anlegen falls nicht vorhanden
+            var adminEmail = "admin@harvestdynasty.com";
+            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+            if (adminUser == null)
+            {
+                adminUser = new ApplicationUser
+                {
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    DisplayName = "Administrator",
+                    EmailConfirmed = true
+                };
+
+                var result = await userManager.CreateAsync(adminUser, "Admin1234");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+            }
         }
     }
 }

@@ -1,0 +1,80 @@
+﻿@model List<SEW04_Projekt_Bsteh.Controllers.PlayerViewModel>
+@{
+    ViewData["Title"] = "Spieler verwalten";
+}
+
+<div class="container mt-4">
+    <h1>Spieler verwalten</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <!-- Suche -->
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Name oder E-Mail suchen..."
+                   value="@ViewBag.Search" />
+            <button class="btn btn-primary" type="submit">Suchen</button>
+            <a asp-action="Players" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>E-Mail</th>
+                <th>Rolle</th>
+                <th>Geld</th>
+                <th>Rebirths</th>
+                <th>Multiplikator</th>
+                <th>Letzter Login</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@(p.DisplayName)</td>
+                    <td>@(p.Email)</td>
+                    <td>
+                        @if (p.Role == "Admin")
+                        {
+                            <span class="badge" style="background-color: #ff6b6b;">Admin</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Spieler</span>
+                        }
+                    </td>
+                    <td>@(p.Money.ToString("F2"))</td>
+                    <td>@(p.RebirthCount)</td>
+                    <td>x@(p.RebirthMultiplier.ToString("F1"))</td>
+                    <td>@(p.LastCalculated?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td>
+                    <td>
+                        <a asp-action="EditPlayer" asp-route-userId="@(p.UserId)"
+                           class="btn btn-warning btn-sm">Bearbeiten</a>
+
+                        @if (p.Email != "admin@harvestdynasty.com")
+                        {
+                            <form asp-action="DeletePlayer" method="post" class="d-inline"
+                                  onsubmit="return confirm('Wirklich loeschen? Alles wird geloescht!')">
+                                <input type="hidden" name="userId" value="@(p.UserId)" />
+                                <button class="btn btn-danger btn-sm">Loeschen</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a asp-action="Index" class="btn btn-secondary mt-3">Zurueck</a>
+</div>

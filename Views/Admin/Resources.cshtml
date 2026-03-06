@@ -1,0 +1,46 @@
+﻿@model List<SEW04_Projekt_Bsteh.Models.Resource>
+@{
+    ViewData["Title"] = "Ressourcen verwalten";
+}
+
+<div class="container mt-4">
+    <h1>Ressourcen verwalten</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @foreach (var res in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">@(res.Name)</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="EditResource" method="post">
+                    <input type="hidden" name="id" value="@(res.Id)" />
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" class="form-control" value="@(res.Name)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Verkaufspreis</label>
+                            <input type="number" name="sellPrice" class="form-control" step="0.01" value="@(res.SellPrice)" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Kettenposition</label>
+                            <input type="number" name="chainOrder" class="form-control" value="@(res.ChainOrder)" />
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Speichern</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary mt-3">Zurueck</a>
+</div>

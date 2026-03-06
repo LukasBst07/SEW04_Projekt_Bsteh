@@ -1,0 +1,62 @@
+﻿@{
+    ViewData["Title"] = "Admin";
+}
+
+<div class="container mt-4">
+    <h1>Admin-Bereich</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>Spieler</h6>
+                    <h3>@ViewBag.UserCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>Farmen</h6>
+                    <h3>@ViewBag.FarmCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>Ressourcen</h6>
+                    <h3>@ViewBag.ResourceCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h6>Gebaeude</h6>
+                    <h3>@ViewBag.BuildingCount</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <a asp-action="Resources" class="btn btn-primary w-100 mb-2">Ressourcen verwalten</a>
+        </div>
+        <div class="col-md-3">
+            <a asp-action="Buildings" class="btn btn-primary w-100 mb-2">Gebaeude verwalten</a>
+        </div>
+        <div class="col-md-3">
+            <a asp-action="Achievements" class="btn btn-primary w-100 mb-2">Achievements verwalten</a>
+        </div>
+        <div class="col-md-3">
+            <a asp-action="Players" class="btn btn-primary w-100 mb-2">Spieler anzeigen</a>
+        </div>
+    </div>
+</div>

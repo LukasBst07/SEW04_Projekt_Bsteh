@@ -1,0 +1,56 @@
+﻿@model List<SEW04_Projekt_Bsteh.Models.Achievement>
+@{
+    ViewData["Title"] = "Achievements verwalten";
+}
+
+<div class="container mt-4">
+    <h1>Achievements verwalten</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @foreach (var a in Model)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">@(a.Name)</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="EditAchievement" method="post">
+                    <input type="hidden" name="id" value="@(a.Id)" />
+                    <div class="row mb-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" name="name" class="form-control" value="@(a.Name)" />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Beschreibung</label>
+                            <input type="text" name="description" class="form-control" value="@(a.Description)" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Bonus-Typ</label>
+                            <input type="text" name="bonusType" class="form-control" value="@(a.BonusType)" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Bonus-Wert</label>
+                            <input type="number" name="bonusValue" class="form-control" step="0.01" value="@(a.BonusValue)" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label class="form-label">Bonus-Beschreibung</label>
+                            <input type="text" name="bonusDescription" class="form-control" value="@(a.BonusDescription)" />
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Speichern</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary mt-3">Zurueck</a>
+</div>
