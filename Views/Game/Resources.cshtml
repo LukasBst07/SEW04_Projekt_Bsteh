@@ -9,8 +9,10 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Ressourcen</h1>
-        <span class="badge bg-dark fs-6">Geld: @(farm?.Money.ToString("F2"))</span>
+        <span class="badge bg-dark fs-6" id="moneyDisplay">Geld: @(farm?.Money.ToString("F2"))</span>
     </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
 
     @if (farm != null && !farm.AllocationUnlocked)
     {
@@ -33,10 +35,11 @@
                             <h5 class="mb-0">@(ur.Resource.Name)</h5>
                         </div>
                         <div class="card-body">
-                            <p>Menge: <strong>@(ur.Amount.ToString("F1"))</strong> / @(ur.MaxStorage)</p>
+                            <p>Menge: <strong id="amount-@(ur.ResourceId)">@(ur.Amount.ToString("F1"))</strong> / <span id="max-@(ur.ResourceId)">@(ur.MaxStorage)</span></p>
                             <div class="progress mb-3">
-                                <div class="progress-bar" style="width: @((ur.Amount / ur.MaxStorage * 100).ToString("F0"))%">
-                                    @((ur.Amount / ur.MaxStorage * 100).ToString("F0"))%
+                                <div class="progress-bar" id="bar-@(ur.ResourceId)"
+                                     style="width: @((ur.Amount / ur.MaxStorage * 100).ToString("F0"))%">
+                                    <span id="percent-@(ur.ResourceId)">@((ur.Amount / ur.MaxStorage * 100).ToString("F0"))%</span>
                                 </div>
                             </div>
 
@@ -46,18 +49,15 @@
                             {
                                 <hr />
                                 <h6>Verteilung</h6>
-                                <form asp-action="UpdateAllocation" method="post">
-                                    <input type="hidden" name="resourceId" value="@(ur.ResourceId)" />
-                                    <div class="mb-2">
-                                        <label>Verkauf: <strong id="sell-@(ur.ResourceId)">@(sellPct)%</strong></label>
-                                        <br />
-                                        <label>Weiterverarbeitung: <strong id="process-@(ur.ResourceId)">@(100 - sellPct)%</strong></label>
-                                    </div>
-                                    <input type="range" class="form-range" name="sellPercentage"
-                                           min="0" max="100" step="5" value="@(sellPct)"
-                                           oninput="document.getElementById('sell-@(ur.ResourceId)').innerText=this.value+'%'; document.getElementById('process-@(ur.ResourceId)').innerText=(100-this.value)+'%';" />
-                                    <button type="submit" class="btn btn-sm btn-primary mt-2 w-100">Speichern</button>
-                                </form>
+                                <div class="mb-2">
+                                    <label>Verkauf: <strong id="sell-@(ur.ResourceId)">@(sellPct)%</strong></label>
+                                    <br />
+                                    <label>Weiterverarbeitung: <strong id="process-@(ur.ResourceId)">@(100 - sellPct)%</strong></label>
+                                </div>
+                                <input type="range" class="form-range" id="slider-@(ur.ResourceId)"
+                                       min="0" max="100" step="5" value="@(sellPct)"
+                                       oninput="updateSliderDisplay(@(ur.ResourceId), this.value)"
+                                       onchange="saveAllocation(@(ur.ResourceId), this.value)" />
                             }
                             else
                             {
@@ -73,3 +73,71 @@
 
     <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurueck zum Dashboard</a>
 </div>
+
+@section Scripts {
+    <script>
+        function showToast(message, type) {
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast show align-items-center text-white bg-' + type + ' border-0';
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML =
+                '<div class="d-flex">' +
+                    '<div class="toast-body">' + message + '</div>' +
+                    '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+                '</div>';
+            container.appendChild(toast);
+            setTimeout(function () { toast.remove(); }, 4000);
+        }
+
+        function updateSliderDisplay(resourceId, value) {
+            document.getElementById('sell-' + resourceId).innerText = value + '%';
+            document.getElementById('process-' + resourceId).innerText = (100 - value) + '%';
+        }
+
+        async function saveAllocation(resourceId, value) {
+            try {
+                var response = await fetch('/Game/AjaxUpdateAllocation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ resourceId: resourceId, sellPercentage: parseInt(value) })
+                });
+                if (response.ok) {
+                    showToast('Verteilung gespeichert!', 'success');
+                } else {
+                    var error = await response.text();
+                    showToast(error, 'danger');
+                }
+            } catch (e) {
+                showToast('Fehler beim Speichern.', 'danger');
+            }
+        }
+
+        async function updateResources() {
+            try {
+                var response = await fetch('/Game/GetGameState');
+                if (!response.ok) return;
+                var data = await response.json();
+
+                document.getElementById('moneyDisplay').innerText = 'Geld: ' + data.money.toFixed(2);
+
+                data.resources.forEach(function (res) {
+                    var amount = document.getElementById('amount-' + res.id);
+                    var max = document.getElementById('max-' + res.id);
+                    var bar = document.getElementById('bar-' + res.id);
+                    var percent = document.getElementById('percent-' + res.id);
+
+                    if (amount) amount.innerText = res.amount.toFixed(1);
+                    if (max) max.innerText = res.maxStorage;
+                    if (bar) {
+                        var pct = (res.amount / res.maxStorage * 100).toFixed(0);
+                        bar.style.width = pct + '%';
+                        if (percent) percent.innerText = pct + '%';
+                    }
+                });
+            } catch (e) { }
+        }
+
+        setInterval(updateResources, 500);
+    </script>
+}

@@ -1,8 +1,42 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Willkommen";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 70vh;">
+    <h1 class="display-1 fw-bold mb-2" style="color: #2d6a4f; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
+        HarvestDynasty
+    </h1>
+    <p class="lead text-center mb-5" style="max-width: 600px; color: #555; font-size: 1.2rem;">
+        Baue deine Farm auf, optimiere deine Produktionskette und werde zum erfolgreichsten Farmer.
+        Eine strategische Idle-Simulation mit Weizen, Mehl und Brot.
+    </p>
+
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        <a asp-controller="Game" asp-action="Dashboard" class="btn btn-warning btn-lg px-5 py-3"
+           style="font-size: 1.3rem; border-radius: 30px;">
+            Weiterspielen
+        </a>
+    }
+    else
+    {
+        <div class="card" style="width: 420px;">
+            <div class="card-header text-center">
+                <h4 class="mb-0">Loslegen</h4>
+            </div>
+            <div class="card-body text-center py-4">
+                <p class="mb-4">Melde dich an oder erstelle einen Account um zu spielen.</p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <a asp-area="Identity" asp-page="/Account/Login"
+                       class="btn btn-primary btn-lg px-4" style="border-radius: 25px;">
+                        Login
+                    </a>
+                    <a asp-area="Identity" asp-page="/Account/Register"
+                       class="btn btn-warning btn-lg px-4" style="border-radius: 25px;">
+                        Registrieren
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
 </div>

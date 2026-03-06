@@ -8,17 +8,10 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Marktplatz</h1>
-        <span class="badge bg-dark fs-6">Geld: @(farm?.Money.ToString("F2"))</span>
+        <span class="badge bg-dark fs-6" id="moneyDisplay">Geld: @(farm?.Money.ToString("F2"))</span>
     </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger">@TempData["Error"]</div>
-    }
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
 
     <div class="row">
         @if (userResources != null)
@@ -31,24 +24,21 @@
                             <h5 class="mb-0">@(ur.Resource.Name)</h5>
                         </div>
                         <div class="card-body">
-                            <p>Verfuegbar: <strong>@(ur.Amount.ToString("F1"))</strong></p>
+                            <p>Verfuegbar: <strong id="available-@(ur.ResourceId)">@(ur.Amount.ToString("F1"))</strong></p>
                             <p>Preis pro Stueck: <strong>@(ur.Resource.SellPrice)</strong></p>
-                            <p>Gesamtwert: <strong>@((ur.Amount * (double)ur.Resource.SellPrice).ToString("F2"))</strong></p>
+                            <p>Gesamtwert: <strong id="value-@(ur.ResourceId)">@((ur.Amount * (double)ur.Resource.SellPrice).ToString("F2"))</strong></p>
 
                             <hr />
-                            <form asp-action="SellResource" method="post">
-                                <input type="hidden" name="resourceId" value="@(ur.ResourceId)" />
-                                <div class="input-group mb-2">
-                                    <input type="number" name="amount" class="form-control" step="0.1" min="0" max="@(ur.Amount)" placeholder="Menge" />
-                                    <button class="btn btn-warning" type="submit">Verkaufen</button>
-                                </div>
-                            </form>
+                            <div class="input-group mb-2">
+                                <input type="number" id="sell-amount-@(ur.ResourceId)" class="form-control"
+                                       step="0.1" min="0" max="@(ur.Amount)" placeholder="Menge" />
+                                <button class="btn btn-warning" onclick="sellResource(@(ur.ResourceId), false)">Verkaufen</button>
+                            </div>
 
-                            <form asp-action="SellResource" method="post">
-                                <input type="hidden" name="resourceId" value="@(ur.ResourceId)" />
-                                <input type="hidden" name="amount" value="@(ur.Amount)" />
-                                <button class="btn btn-outline-warning btn-sm w-100">Alles verkaufen</button>
-                            </form>
+                            <button class="btn btn-outline-warning btn-sm w-100"
+                                    onclick="sellResource(@(ur.ResourceId), true)">
+                                Alles verkaufen
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -58,3 +48,74 @@
 
     <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurueck zum Dashboard</a>
 </div>
+
+@section Scripts {
+    <script>
+        function showToast(message, type) {
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast show align-items-center text-white bg-' + type + ' border-0';
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML =
+                '<div class="d-flex">' +
+                    '<div class="toast-body">' + message + '</div>' +
+                    '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+                '</div>';
+            container.appendChild(toast);
+            setTimeout(function () { toast.remove(); }, 4000);
+        }
+
+        async function sellResource(resourceId, sellAll) {
+            var amount = 0;
+            if (sellAll) {
+                amount = parseFloat(document.getElementById('available-' + resourceId).innerText);
+            } else {
+                amount = parseFloat(document.getElementById('sell-amount-' + resourceId).value);
+            }
+
+            if (!amount || amount <= 0) {
+                showToast('Bitte Menge eingeben!', 'danger');
+                return;
+            }
+
+            try {
+                var response = await fetch('/Game/AjaxSellResource', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ resourceId: resourceId, amount: amount })
+                });
+                if (response.ok) {
+                    var data = await response.json();
+                    showToast(data.message, 'success');
+                } else {
+                    var error = await response.text();
+                    showToast(error, 'danger');
+                }
+            } catch (e) {
+                showToast('Fehler beim Verkaufen.', 'danger');
+            }
+        }
+
+        async function updateMarket() {
+            try {
+                var response = await fetch('/Game/GetGameState');
+                if (!response.ok) return;
+                var data = await response.json();
+
+                document.getElementById('moneyDisplay').innerText = 'Geld: ' + data.money.toFixed(2);
+
+                data.resources.forEach(function (res) {
+                    var available = document.getElementById('available-' + res.id);
+                    var value = document.getElementById('value-' + res.id);
+                    var input = document.getElementById('sell-amount-' + res.id);
+
+                    if (available) available.innerText = res.amount.toFixed(1);
+                    if (value) value.innerText = (res.amount * parseFloat(res.sellPrice)).toFixed(2);
+                    if (input) input.max = res.amount;
+                });
+            } catch (e) { }
+        }
+
+        setInterval(updateMarket, 500);
+    </script>
+}

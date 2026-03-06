@@ -540,6 +540,157 @@ namespace SEW04_Projekt_Bsteh.Controllers
             return Json(new { success = true, message = $"{amount:F1} {userResource.Resource.Name} fuer {income:F2} verkauft!" });
         }
 
+        // ==================== REBIRTH ====================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Rebirth()
+        {
+            var farm = await LoadFarmWithCalculation();
+            if (farm == null) return RedirectToAction("Profile");
+
+            // Mindestanforderung: Alle 3 Gebaeude freigeschaltet
+            var unlockedCount = await _db.UserBuildings
+                .Where(ub => ub.FarmId == farm.Id && ub.IsUnlocked)
+                .CountAsync();
+
+            if (unlockedCount < 3)
+            {
+                TempData["Error"] = "Du musst alle Gebaeude freigeschaltet haben um Rebirth zu nutzen!";
+                return RedirectToAction("Profile");
+            }
+
+            // Multiplikator erhoehen
+            farm.RebirthMultiplier += 0.5;
+            farm.RebirthCount++;
+
+            // Geld zuruecksetzen
+            farm.Money = 100m;
+
+            // Achievement-Boni zuruecksetzen
+            farm.AllocationUnlocked = false;
+            farm.AchievementProductionBonus = 0;
+            farm.AchievementSellBonus = 0;
+            farm.AchievementUpgradeDiscount = 0;
+            farm.AchievementStorageBonus = 0;
+
+            // Zeitstempel zuruecksetzen
+            farm.LastCalculated = DateTime.UtcNow;
+
+            // Alle UserBuildings zuruecksetzen (nur Feld bleibt freigeschaltet)
+            var userBuildings = await _db.UserBuildings
+                .Include(ub => ub.Building)
+                .Where(ub => ub.FarmId == farm.Id)
+                .ToListAsync();
+
+            foreach (var ub in userBuildings)
+            {
+                ub.IsUnlocked = ub.Building.Name == "Feld";
+                ub.ProductionLevel = 0;
+                ub.EfficiencyLevel = 0;
+                ub.CapacityLevel = 0;
+            }
+
+            // Alle UserResources zuruecksetzen
+            var userResources = await _db.UserResources
+                .Where(ur => ur.FarmId == farm.Id)
+                .ToListAsync();
+
+            foreach (var ur in userResources)
+            {
+                ur.Amount = 0;
+                ur.MaxStorage = 100;
+            }
+
+            // Alle Allocations zuruecksetzen (100% verkaufen)
+            var allocations = await _db.ResourceAllocations
+                .Where(ra => ra.FarmId == farm.Id)
+                .ToListAsync();
+
+            foreach (var a in allocations)
+            {
+                a.SellPercentage = 100;
+            }
+
+            // Alle UserAchievements loeschen
+            var achievements = await _db.UserAchievements
+                .Where(ua => ua.FarmId == farm.Id)
+                .ToListAsync();
+
+            _db.UserAchievements.RemoveRange(achievements);
+
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = $"Rebirth #{farm.RebirthCount} abgeschlossen! Neuer Multiplikator: x{farm.RebirthMultiplier:F1}";
+            return RedirectToAction("Dashboard");
+        }
+
+        // AJAX Version
+        [HttpPost]
+        public async Task<IActionResult> AjaxRebirth()
+        {
+            var farm = await LoadFarmWithCalculation();
+            if (farm == null) return Unauthorized();
+
+            var unlockedCount = await _db.UserBuildings
+                .Where(ub => ub.FarmId == farm.Id && ub.IsUnlocked)
+                .CountAsync();
+
+            if (unlockedCount < 3)
+                return BadRequest("Du musst alle Gebaeude freigeschaltet haben!");
+
+            farm.RebirthMultiplier += 0.5;
+            farm.RebirthCount++;
+            farm.Money = 100m;
+            farm.AllocationUnlocked = false;
+            farm.AchievementProductionBonus = 0;
+            farm.AchievementSellBonus = 0;
+            farm.AchievementUpgradeDiscount = 0;
+            farm.AchievementStorageBonus = 0;
+            farm.LastCalculated = DateTime.UtcNow;
+
+            var userBuildings = await _db.UserBuildings
+                .Include(ub => ub.Building)
+                .Where(ub => ub.FarmId == farm.Id)
+                .ToListAsync();
+
+            foreach (var ub in userBuildings)
+            {
+                ub.IsUnlocked = ub.Building.Name == "Feld";
+                ub.ProductionLevel = 0;
+                ub.EfficiencyLevel = 0;
+                ub.CapacityLevel = 0;
+            }
+
+            var userResources = await _db.UserResources
+                .Where(ur => ur.FarmId == farm.Id)
+                .ToListAsync();
+
+            foreach (var ur in userResources)
+            {
+                ur.Amount = 0;
+                ur.MaxStorage = 100;
+            }
+
+            var allocations = await _db.ResourceAllocations
+                .Where(ra => ra.FarmId == farm.Id)
+                .ToListAsync();
+
+            foreach (var a in allocations)
+            {
+                a.SellPercentage = 100;
+            }
+
+            var achievements = await _db.UserAchievements
+                .Where(ua => ua.FarmId == farm.Id)
+                .ToListAsync();
+
+            _db.UserAchievements.RemoveRange(achievements);
+
+            await _db.SaveChangesAsync();
+
+            return Json(new { success = true, message = $"Rebirth #{farm.RebirthCount}! Multiplikator: x{farm.RebirthMultiplier:F1}" });
+        }
+
         // ==================== FARM ERSTELLEN ====================
         private async Task<Farm> CreateNewFarm(string userId)
         {

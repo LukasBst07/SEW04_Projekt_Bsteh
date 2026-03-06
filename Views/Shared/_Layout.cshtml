@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,38 +7,289 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SEW04_Projekt_Bsteh.styles.css" asp-append-version="true" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f0e1 0%, #e8d5b7 50%, #d4e7c5 100%);
+            color: #2d2d2d;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(90deg, #2d6a4f, #40916c, #52b788) !important;
+            border-bottom: 3px solid #f4a261 !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+
+        .navbar-brand {
+            color: #ffd166 !important;
+            font-weight: 800;
+            font-size: 1.4rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .nav-link {
+            color: #ffffff !important;
+            font-weight: 500;
+        }
+
+            .nav-link:hover {
+                color: #ffd166 !important;
+            }
+
+        /* Cards */
+        .card {
+            background-color: #ffffff;
+            border: 2px solid #d4e7c5;
+            border-radius: 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            color: #2d2d2d;
+            transition: transform 0.15s;
+        }
+
+            .card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+            }
+
+        .card-header {
+            background: linear-gradient(90deg, #52b788, #40916c);
+            border-bottom: 2px solid #2d6a4f;
+            color: #ffffff;
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: #2d6a4f;
+            border-color: #2d6a4f;
+            color: #fff;
+            font-weight: 600;
+        }
+
+            .btn-primary:hover {
+                background-color: #40916c;
+                border-color: #40916c;
+            }
+
+        .btn-success {
+            background-color: #52b788;
+            border-color: #52b788;
+            color: #fff;
+        }
+
+        .btn-warning {
+            background-color: #f4a261;
+            border-color: #f4a261;
+            color: #fff;
+            font-weight: 600;
+        }
+
+            .btn-warning:hover {
+                background-color: #e76f51;
+                border-color: #e76f51;
+                color: #fff;
+            }
+
+        .btn-info {
+            background-color: #48bfe3;
+            border-color: #48bfe3;
+            color: #fff;
+        }
+
+            .btn-info:hover {
+                background-color: #0096c7;
+                border-color: #0096c7;
+                color: #fff;
+            }
+
+        .btn-secondary {
+            background-color: #adb5bd;
+            border-color: #adb5bd;
+            color: #2d2d2d;
+        }
+
+        .btn-outline-primary {
+            border-color: #2d6a4f;
+            color: #2d6a4f;
+        }
+
+            .btn-outline-primary:hover {
+                background-color: #2d6a4f;
+                color: #fff;
+            }
+
+        .btn-outline-info {
+            border-color: #48bfe3;
+            color: #0096c7;
+        }
+
+            .btn-outline-info:hover {
+                background-color: #48bfe3;
+                color: #fff;
+            }
+
+        .btn-outline-warning {
+            border-color: #f4a261;
+            color: #e76f51;
+        }
+
+            .btn-outline-warning:hover {
+                background-color: #f4a261;
+                color: #fff;
+            }
+
+        /* Badge */
+        .badge.bg-dark {
+            background: linear-gradient(90deg, #2d6a4f, #40916c) !important;
+            color: #ffd166;
+            font-size: 1rem;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .badge.bg-success {
+            background-color: #52b788 !important;
+        }
+
+        .badge.bg-secondary {
+            background-color: #adb5bd !important;
+            color: #2d2d2d !important;
+        }
+
+        /* Progress */
+        .progress {
+            background-color: #e8e8e8;
+            height: 28px;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #52b788, #2d6a4f);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            line-height: 28px;
+        }
+
+        /* Alerts */
+        .alert-success {
+            background-color: #d4edda;
+            border-color: #52b788;
+            color: #2d6a4f;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #e76f51;
+            color: #842029;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #f4a261;
+            color: #664d03;
+        }
+
+        /* Toast */
+        .toast {
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(90deg, #2d6a4f, #40916c);
+            color: #d4e7c5;
+            border-top: 3px solid #f4a261 !important;
+        }
+
+            footer a {
+                color: #ffd166 !important;
+            }
+
+        /* Links */
+        a {
+            color: #2d6a4f;
+        }
+
+            a:hover {
+                color: #e76f51;
+            }
+
+        /* Forms */
+        .form-range::-webkit-slider-thumb {
+            background: #f4a261;
+        }
+
+        .form-range::-moz-range-thumb {
+            background: #f4a261;
+        }
+
+        .form-control, .form-select {
+            background-color: #fff;
+            border-color: #d4e7c5;
+            color: #2d2d2d;
+            border-radius: 8px;
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: #52b788;
+                box-shadow: 0 0 0 0.2rem rgba(82, 183, 136, 0.25);
+            }
+
+        /* Misc */
+        .opacity-50 {
+            opacity: 0.45 !important;
+        }
+
+        .border-success {
+            border-color: #52b788 !important;
+            border-width: 3px !important;
+        }
+
+        .border-warning {
+            border-color: #f4a261 !important;
+            border-width: 3px !important;
+        }
+
+        h1, h2, h3, h4 {
+            color: #2d6a4f;
+            font-weight: 700;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-dark mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HarvestDynasty</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" asp-area="" asp-controller="Game" asp-action="Dashboard">HarvestDynasty</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-controller="Game" asp-action="Dashboard">Dashboard</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Game" asp-action="Dashboard">Dashboard</a>
+                            <a class="nav-link" asp-controller="Game" asp-action="Buildings">Gebaeude</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Game" asp-action="Buildings">Gebaeude</a>
+                            <a class="nav-link" asp-controller="Game" asp-action="Resources">Ressourcen</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Game" asp-action="Resources">Ressourcen</a>
+                            <a class="nav-link" asp-controller="Game" asp-action="Market">Marktplatz</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Game" asp-action="Market">Marktplatz</a>
+                            <a class="nav-link" asp-controller="Game" asp-action="Achievements">Achievements</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Game" asp-action="Achievements">Achievements</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Game" asp-action="Profile">Profil</a>
+                            <a class="nav-link" asp-controller="Game" asp-action="Profile">Profil</a>
                         </li>
                     </ul>
                     <partial name="_LoginPartial" />
@@ -51,9 +302,9 @@
             @RenderBody()
         </main>
     </div>
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - HarvestDynasty - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="border-top footer text-muted mt-5 py-3">
+        <div class="container text-center">
+            &copy; 2026 - HarvestDynasty
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

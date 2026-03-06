@@ -6,10 +6,22 @@
     var achievementCount = ViewBag.AchievementCount as int? ?? 0;
     var totalAchievements = ViewBag.TotalAchievements as int? ?? 0;
     var userEmail = ViewBag.UserEmail as string;
+    var allUnlocked = userBuildings?.Count(ub => ub.IsUnlocked) >= 3;
 }
 
 <div class="container mt-4">
     <h1>Profil</h1>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
 
     <div class="row">
         <!-- Spieler Info -->
@@ -20,7 +32,7 @@
                 </div>
                 <div class="card-body">
                     <p>E-Mail: <strong>@(userEmail)</strong></p>
-                    <p>Geld: <strong>@(farm?.Money.ToString("F2"))</strong></p>
+                    <p>Geld: <strong id="moneyDisplay">@(farm?.Money.ToString("F2"))</strong></p>
                 </div>
             </div>
         </div>
@@ -56,7 +68,7 @@
     </div>
 
     <!-- Rebirth -->
-    <div class="card mb-3">
+    <div class="card mb-3 @(allUnlocked ? "border-warning" : "")">
         <div class="card-header">
             <h5 class="mb-0">Rebirth</h5>
         </div>
@@ -64,9 +76,70 @@
             <p>Setze deine Farm zurueck und erhalte einen dauerhaften Multiplikator.</p>
             <p>Aktueller Multiplikator: <strong>x@(farm?.RebirthMultiplier.ToString("F1"))</strong></p>
             <p>Nach Rebirth: <strong>x@((farm != null ? farm.RebirthMultiplier + 0.5 : 1.5).ToString("F1"))</strong></p>
-            <p class="text-muted">Rebirth-Funktion wird bald verfuegbar sein.</p>
+
+            <div class="alert alert-warning mt-3">
+                <strong>Achtung:</strong> Rebirth setzt zurueck: Geld, Gebaeude, Upgrades, Ressourcen, Achievements und alle Boni.
+                Nur der Multiplikator und die Rebirth-Anzahl bleiben.
+            </div>
+
+            @if (allUnlocked)
+            {
+                <button class="btn btn-warning w-100" id="rebirthBtn" onclick="confirmRebirth()">
+                    Rebirth durchfuehren
+                </button>
+            }
+            else
+            {
+                <button class="btn btn-secondary w-100" disabled>
+                    Alle Gebaeude freischalten um Rebirth zu nutzen
+                </button>
+            }
         </div>
     </div>
 
     <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurueck zum Dashboard</a>
 </div>
+
+@section Scripts {
+    <script>
+        function showToast(message, type) {
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast show align-items-center text-white bg-' + type + ' border-0';
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML =
+                '<div class="d-flex">' +
+                    '<div class="toast-body">' + message + '</div>' +
+                    '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+                '</div>';
+            container.appendChild(toast);
+            setTimeout(function () { toast.remove(); }, 4000);
+        }
+
+        function confirmRebirth() {
+            if (confirm('Bist du sicher? Alles ausser Multiplikator wird zurueckgesetzt!')) {
+                doRebirth();
+            }
+        }
+
+        async function doRebirth() {
+            try {
+                var response = await fetch('/Game/AjaxRebirth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    var data = await response.json();
+                    showToast(data.message, 'success');
+                    setTimeout(function () { window.location.href = '/Game/Dashboard'; }, 1500);
+                } else {
+                    var error = await response.text();
+                    showToast(error, 'danger');
+                }
+            } catch (e) {
+                showToast('Fehler beim Rebirth.', 'danger');
+            }
+        }
+    </script>
+}
