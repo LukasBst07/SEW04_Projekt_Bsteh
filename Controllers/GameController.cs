@@ -341,6 +341,204 @@ namespace SEW04_Projekt_Bsteh.Controllers
 
             return View();
         }
+        // ==================== API ENDPOINTS (AJAX) ====================
+
+        // Gibt den aktuellen Spielstand als JSON zurueck
+        [HttpGet]
+        public async Task<IActionResult> GetGameState()
+        {
+            var farm = await LoadFarmWithCalculation();
+            if (farm == null) return Unauthorized();
+
+            var userBuildings = await _db.UserBuildings
+                .Include(ub => ub.Building)
+                    .ThenInclude(b => b.OutputResource)
+                .Include(ub => ub.Building)
+                    .ThenInclude(b => b.InputResource)
+                .Where(ub => ub.FarmId == farm.Id)
+                .ToListAsync();
+
+            var userResources = await _db.UserResources
+                .Include(ur => ur.Resource)
+                .Where(ur => ur.FarmId == farm.Id)
+                .OrderBy(ur => ur.Resource.ChainOrder)
+                .ToListAsync();
+
+            var allocations = await _db.ResourceAllocations
+                .Where(ra => ra.FarmId == farm.Id)
+                .ToListAsync();
+
+            var userAchievementIds = await _db.UserAchievements
+                .Where(ua => ua.FarmId == farm.Id)
+                .Select(ua => ua.AchievementId)
+                .ToListAsync();
+
+            return Json(new
+            {
+                money = farm.Money,
+                rebirthMultiplier = farm.RebirthMultiplier,
+                rebirthCount = farm.RebirthCount,
+                allocationUnlocked = farm.AllocationUnlocked,
+                productionBonus = farm.AchievementProductionBonus,
+                sellBonus = farm.AchievementSellBonus,
+                upgradeDiscount = farm.AchievementUpgradeDiscount,
+                storageBonus = farm.AchievementStorageBonus,
+                resources = userResources.Select(ur => new
+                {
+                    id = ur.ResourceId,
+                    name = ur.Resource.Name,
+                    amount = ur.Amount,
+                    maxStorage = ur.MaxStorage,
+                    sellPrice = ur.Resource.SellPrice
+                }),
+                buildings = userBuildings.Select(ub => new
+                {
+                    id = ub.BuildingId,
+                    name = ub.Building.Name,
+                    isUnlocked = ub.IsUnlocked,
+                    productionLevel = ub.ProductionLevel,
+                    efficiencyLevel = ub.EfficiencyLevel,
+                    capacityLevel = ub.CapacityLevel,
+                    baseCost = ub.Building.BaseCost
+                }),
+                allocations = allocations.Select(a => new
+                {
+                    resourceId = a.ResourceId,
+                    sellPercentage = a.SellPercentage
+                }),
+                achievements = userAchievementIds
+            });
+        }
+
+        // AJAX: Gebaeude kaufen
+        [HttpPost]
+        public async Task<IActionResult> AjaxBuyBuilding([FromBody] int buildingId)
+        {
+            var farm = await LoadFarmWithCalculation();
+            if (farm == null) return Unauthorized();
+
+            var userBuilding = await _db.UserBuildings
+                .Include(ub => ub.Building)
+                .FirstOrDefaultAsync(ub => ub.FarmId == farm.Id && ub.BuildingId == buildingId);
+
+            if (userBuilding == null) return BadRequest("Gebaeude nicht gefunden.");
+            if (userBuilding.IsUnlocked) return BadRequest("Bereits freigeschaltet.");
+            if (farm.Money < userBuilding.Building.BaseCost) return BadRequest("Nicht genug Geld!");
+
+            farm.Money -= userBuilding.Building.BaseCost;
+            userBuilding.IsUnlocked = true;
+            await _db.SaveChangesAsync();
+            await _achievements.CheckAchievements(farm.Id);
+
+            return Json(new { success = true, message = $"{userBuilding.Building.Name} gekauft!" });
+        }
+
+        // AJAX: Gebaeude upgraden
+        [HttpPost]
+        public async Task<IActionResult> AjaxUpgradeBuilding([FromBody] UpgradeRequest request)
+        {
+            var farm = await LoadFarmWithCalculation();
+            if (farm == null) return Unauthorized();
+
+            var userBuilding = await _db.UserBuildings
+                .Include(ub => ub.Building)
+                .FirstOrDefaultAsync(ub => ub.FarmId == farm.Id && ub.BuildingId == request.BuildingId);
+
+            if (userBuilding == null || !userBuilding.IsUnlocked)
+                return BadRequest("Gebaeude nicht verfuegbar.");
+
+            int currentLevel = request.UpgradeType switch
+            {
+                "production" => userBuilding.ProductionLevel,
+                "efficiency" => userBuilding.EfficiencyLevel,
+                "capacity" => userBuilding.CapacityLevel,
+                _ => -1
+            };
+
+            if (currentLevel == -1) return BadRequest("Ungueltiger Upgrade-Typ.");
+
+            var cost = userBuilding.Building.BaseCost * (decimal)(currentLevel + 1) * 0.5m;
+            if (cost < 50) cost = 50;
+            cost *= (1 - (decimal)farm.AchievementUpgradeDiscount);
+
+            if (farm.Money < cost) return BadRequest($"Nicht genug Geld! Kosten: {cost:F0}");
+
+            farm.Money -= cost;
+
+            switch (request.UpgradeType)
+            {
+                case "production":
+                    userBuilding.ProductionLevel++;
+                    break;
+                case "efficiency":
+                    userBuilding.EfficiencyLevel++;
+                    break;
+                case "capacity":
+                    userBuilding.CapacityLevel++;
+                    var outputResource = await _db.UserResources
+                        .FirstOrDefaultAsync(ur => ur.FarmId == farm.Id && ur.ResourceId == userBuilding.Building.OutputResourceId);
+                    if (outputResource != null)
+                    {
+                        outputResource.MaxStorage = 100 * (1 + userBuilding.CapacityLevel * 0.25)
+                            * (1 + farm.AchievementStorageBonus);
+                    }
+                    break;
+            }
+
+            await _db.SaveChangesAsync();
+            await _achievements.CheckAchievements(farm.Id);
+
+            return Json(new { success = true, message = $"{request.UpgradeType} auf Level {currentLevel + 1}!" });
+        }
+
+        // AJAX: Ressourcenverteilung aendern
+        [HttpPost]
+        public async Task<IActionResult> AjaxUpdateAllocation([FromBody] AllocationRequest request)
+        {
+            var farm = await LoadFarmWithCalculation();
+            if (farm == null) return Unauthorized();
+
+            if (!farm.AllocationUnlocked) return BadRequest("Verteilung gesperrt!");
+
+            var sellPercentage = Math.Clamp(request.SellPercentage, 0, 100);
+
+            var allocation = await _db.ResourceAllocations
+                .FirstOrDefaultAsync(ra => ra.FarmId == farm.Id && ra.ResourceId == request.ResourceId);
+
+            if (allocation == null) return BadRequest("Ressource nicht gefunden.");
+
+            allocation.SellPercentage = sellPercentage;
+            await _db.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
+        // AJAX: Ressource verkaufen
+        [HttpPost]
+        public async Task<IActionResult> AjaxSellResource([FromBody] SellRequest request)
+        {
+            var farm = await LoadFarmWithCalculation();
+            if (farm == null) return Unauthorized();
+
+            var userResource = await _db.UserResources
+                .Include(ur => ur.Resource)
+                .FirstOrDefaultAsync(ur => ur.FarmId == farm.Id && ur.ResourceId == request.ResourceId);
+
+            if (userResource == null) return BadRequest("Ressource nicht gefunden.");
+
+            var amount = Math.Min(request.Amount, userResource.Amount);
+            if (amount <= 0) return BadRequest("Nichts zu verkaufen!");
+
+            var price = userResource.Resource.SellPrice * (1 + (decimal)farm.AchievementSellBonus);
+            var income = (decimal)amount * price;
+            userResource.Amount -= amount;
+            farm.Money += income;
+
+            await _db.SaveChangesAsync();
+            await _achievements.CheckAchievements(farm.Id);
+
+            return Json(new { success = true, message = $"{amount:F1} {userResource.Resource.Name} fuer {income:F2} verkauft!" });
+        }
 
         // ==================== FARM ERSTELLEN ====================
         private async Task<Farm> CreateNewFarm(string userId)
