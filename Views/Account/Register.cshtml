@@ -1,0 +1,53 @@
+﻿@model SEW04_Projekt_Bsteh.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Registrieren";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="card" style="width: 420px;">
+        <div class="card-header text-center">
+            <h3 class="mb-0">Account erstellen</h3>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+
+                <div class="mb-3">
+                    <label asp-for="DisplayName" class="form-label">Anzeigename</label>
+                    <input asp-for="DisplayName" class="form-control" placeholder="Dein Farmername" autofocus />
+                    <span asp-validation-for="DisplayName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">E-Mail</label>
+                    <input asp-for="Email" class="form-control" placeholder="deine@email.com" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Passwort</label>
+                    <input asp-for="Password" class="form-control" placeholder="Mindestens 4 Zeichen" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ConfirmPassword" class="form-label">Passwort bestaetigen</label>
+                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Passwort wiederholen" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-warning w-100 mb-3" style="border-radius: 25px; padding: 10px;">
+                    Registrieren
+                </button>
+
+                <div class="text-center">
+                    <p>Schon einen Account? <a asp-action="Login" style="color: #2d6a4f; font-weight: 600;">Zum Login</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

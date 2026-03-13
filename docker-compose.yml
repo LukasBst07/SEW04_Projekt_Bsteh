@@ -1,0 +1,16 @@
+services:
+  sew04-projekt-bsteh:
+    image: harvestdynasty
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - harvest_data:/app/data
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/HarvestDynasty.db
+
+volumes:
+  harvest_data:

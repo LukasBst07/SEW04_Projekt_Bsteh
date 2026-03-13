@@ -33,6 +33,12 @@ namespace SEW04_Projekt_Bsteh
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Account/Login";
+                options.LogoutPath = "/Account/Logout";
+                options.AccessDeniedPath = "/Account/Login";
+            });
 
             builder.Services.AddScoped<GameCalculationService>();
             builder.Services.AddScoped<AchievementService>();

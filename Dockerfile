@@ -1,30 +1,22 @@
-# Unter https://aka.ms/customizecontainer erfahren Sie, wie Sie Ihren Debugcontainer anpassen und wie Visual Studio dieses Dockerfile verwendet, um Ihre Images für ein schnelleres Debuggen zu erstellen.
-
-# Diese Stufe wird verwendet, wenn sie von VS im Schnellmodus ausgeführt wird (Standardeinstellung für Debugkonfiguration).
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
-
-# Diese Stufe wird zum Erstellen des Dienstprojekts verwendet.
+# Build-Stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["SEW04_Projekt_Bsteh.csproj", "."]
 RUN dotnet restore "./SEW04_Projekt_Bsteh.csproj"
 COPY . .
-WORKDIR "/src/."
-RUN dotnet build "./SEW04_Projekt_Bsteh.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet publish "./SEW04_Projekt_Bsteh.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Diese Stufe wird verwendet, um das Dienstprojekt zu veröffentlichen, das in die letzte Phase kopiert werden soll.
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./SEW04_Projekt_Bsteh.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-# Diese Stufe wird in der Produktion oder bei Ausführung von VS im regulären Modus verwendet (Standard, wenn die Debugkonfiguration nicht verwendet wird).
-FROM base AS final
+# Runtime-Stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+# Datenordner fuer SQLite
+RUN mkdir -p /app/data
+
+ENV ASPNETCORE_URLS=http://+:8080
+
+COPY --from=build /app/publish .
+
+EXPOSE 8080
+
 ENTRYPOINT ["dotnet", "SEW04_Projekt_Bsteh.dll"]

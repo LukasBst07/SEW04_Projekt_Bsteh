@@ -1,0 +1,48 @@
+﻿@model SEW04_Projekt_Bsteh.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="card" style="width: 420px;">
+        <div class="card-header text-center">
+            <h3 class="mb-0">Willkommen zurueck!</h3>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Login" method="post">
+                <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">E-Mail</label>
+                    <input asp-for="Email" class="form-control" placeholder="deine@email.com" autofocus />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Passwort</label>
+                    <input asp-for="Password" class="form-control" placeholder="Passwort" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label asp-for="RememberMe" class="form-check-label">Angemeldet bleiben</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mb-3" style="border-radius: 25px; padding: 10px;">
+                    Einloggen
+                </button>
+
+                <div class="text-center">
+                    <p>Noch kein Account? <a asp-action="Register" style="color: #e76f51; font-weight: 600;">Jetzt registrieren</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

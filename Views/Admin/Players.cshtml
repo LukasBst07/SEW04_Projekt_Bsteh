@@ -15,13 +15,35 @@
         <div class="alert alert-danger">@TempData["Error"]</div>
     }
 
-    <!-- Suche -->
+    <!-- Suche + Filter + Sortierung -->
     <form method="get" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="search" class="form-control" placeholder="Name oder E-Mail suchen..."
-                   value="@ViewBag.Search" />
-            <button class="btn btn-primary" type="submit">Suchen</button>
-            <a asp-action="Players" class="btn btn-secondary">Reset</a>
+        <div class="row g-2">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Name oder E-Mail suchen..."
+                       value="@ViewBag.Search" />
+            </div>
+            <div class="col-md-2">
+                <select name="role" class="form-select">
+                    <option value="all" selected="@(ViewBag.Role == "all" ? "selected" : null)">Alle Rollen</option>
+                    <option value="Admin" selected="@(ViewBag.Role == "Admin" ? "selected" : null)">Admin</option>
+                    <option value="Spieler" selected="@(ViewBag.Role == "Spieler" ? "selected" : null)">Spieler</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="sortBy" class="form-select">
+                    <option value="name">Name A-Z</option>
+                    <option value="money_desc" selected="@(ViewBag.SortBy == "money_desc" ? "selected" : null)">Geld (absteigend)</option>
+                    <option value="money_asc" selected="@(ViewBag.SortBy == "money_asc" ? "selected" : null)">Geld (aufsteigend)</option>
+                    <option value="login_desc" selected="@(ViewBag.SortBy == "login_desc" ? "selected" : null)">Letzter Login (neueste)</option>
+                    <option value="login_asc" selected="@(ViewBag.SortBy == "login_asc" ? "selected" : null)">Letzter Login (aelteste)</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="submit">Filtern</button>
+            </div>
+            <div class="col-md-1">
+                <a asp-action="Players" class="btn btn-secondary w-100">Reset</a>
+            </div>
         </div>
     </form>
 
@@ -33,7 +55,7 @@
                 <th>Rolle</th>
                 <th>Geld</th>
                 <th>Rebirths</th>
-                <th>Multiplikator</th>
+                <th>Multi</th>
                 <th>Letzter Login</th>
                 <th>Aktionen</th>
             </tr>

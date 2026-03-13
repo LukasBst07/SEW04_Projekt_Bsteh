@@ -27,11 +27,11 @@
             <div class="card-body text-center py-4">
                 <p class="mb-4">Melde dich an oder erstelle einen Account um zu spielen.</p>
                 <div class="d-flex gap-3 justify-content-center">
-                    <a asp-area="Identity" asp-page="/Account/Login"
+                    <a asp-controller="Account" asp-action="Login"
                        class="btn btn-primary btn-lg px-4" style="border-radius: 25px;">
                         Login
                     </a>
-                    <a asp-area="Identity" asp-page="/Account/Register"
+                    <a asp-controller="Account" asp-action="Register"
                        class="btn btn-warning btn-lg px-4" style="border-radius: 25px;">
                         Registrieren
                     </a>

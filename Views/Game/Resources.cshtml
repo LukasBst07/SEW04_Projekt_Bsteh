@@ -17,17 +17,20 @@
     @if (farm != null && !farm.AllocationUnlocked)
     {
         <div class="alert alert-warning">
-            Ressourcenverteilung ist gesperrt. Kaufe die Muehle um sie freizuschalten!
+            Ressourcenverteilung ist gesperrt. Kaufe die Mühle um sie freizuschalten!
         </div>
     }
 
     <div class="row">
         @if (userResources != null && allocations != null)
         {
+            var maxChainOrder = userResources.Max(ur => ur.Resource.ChainOrder);
+
             @foreach (var ur in userResources)
             {
                 var alloc = allocations.FirstOrDefault(a => a.ResourceId == ur.ResourceId);
                 var sellPct = alloc?.SellPercentage ?? 100;
+                var isLastInChain = ur.Resource.ChainOrder == maxChainOrder;
 
                 <div class="col-md-4">
                     <div class="card mb-3">
@@ -43,9 +46,9 @@
                                 </div>
                             </div>
 
-                            <p>Verkaufspreis: @(ur.Resource.SellPrice) pro Stueck</p>
+                            <p>Verkaufspreis: @(ur.Resource.SellPrice) pro Stück</p>
 
-                            @if (farm != null && farm.AllocationUnlocked)
+                            @if (farm != null && farm.AllocationUnlocked && !isLastInChain)
                             {
                                 <hr />
                                 <h6>Verteilung</h6>
@@ -59,6 +62,11 @@
                                        oninput="updateSliderDisplay(@(ur.ResourceId), this.value)"
                                        onchange="saveAllocation(@(ur.ResourceId), this.value)" />
                             }
+                            else if (farm != null && farm.AllocationUnlocked && isLastInChain)
+                            {
+                                <hr />
+                                <p class="text-muted">Letzte Produktionsstufe – wird automatisch verkauft.</p>
+                            }
                             else
                             {
                                 <hr />
@@ -71,7 +79,7 @@
         }
     </div>
 
-    <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurueck zum Dashboard</a>
+    <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurück zum Dashboard</a>
 </div>
 
 @section Scripts {

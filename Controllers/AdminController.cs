@@ -32,22 +32,12 @@ namespace SEW04_Projekt_Bsteh.Controllers
         }
 
         // === SPIELER VERWALTEN ===
-        public async Task<IActionResult> Players(string? search)
+        public async Task<IActionResult> Players(string? search, string? role, string? sortBy)
         {
-            var users = _userManager.Users.AsQueryable();
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                search = search.ToLower();
-                users = users.Where(u => u.Email!.ToLower().Contains(search)
-                    || u.DisplayName.ToLower().Contains(search));
-            }
-
-            var userList = await users.ToListAsync();
-
+            var users = await _userManager.Users.ToListAsync();
             var playerData = new List<PlayerViewModel>();
 
-            foreach (var user in userList)
+            foreach (var user in users)
             {
                 var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == user.Id);
                 var roles = await _userManager.GetRolesAsync(user);
@@ -67,11 +57,40 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 });
             }
 
+            // Suche
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.ToLower();
+                playerData = playerData.Where(p =>
+                    p.Email.ToLower().Contains(search) ||
+                    p.DisplayName.ToLower().Contains(search)).ToList();
+            }
+
+            // Rollenfilter
+            if (!string.IsNullOrEmpty(role) && role != "all")
+            {
+                playerData = playerData.Where(p => p.Role == role).ToList();
+            }
+
+            // Sortierung
+            playerData = sortBy switch
+            {
+                "money_desc" => playerData.OrderByDescending(p => p.Money).ToList(),
+                "money_asc" => playerData.OrderBy(p => p.Money).ToList(),
+                "login_desc" => playerData.OrderByDescending(p => p.LastCalculated).ToList(),
+                "login_asc" => playerData.OrderBy(p => p.LastCalculated).ToList(),
+                "name" => playerData.OrderBy(p => p.DisplayName).ToList(),
+                _ => playerData.OrderBy(p => p.DisplayName).ToList()
+            };
+
             ViewBag.Search = search;
+            ViewBag.Role = role;
+            ViewBag.SortBy = sortBy;
+
             return View(playerData);
         }
 
-        // Spieler bearbeiten (Geld, Multiplikator etc.)
+        // Spieler bearbeiten
         public async Task<IActionResult> EditPlayer(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -103,75 +122,147 @@ namespace SEW04_Projekt_Bsteh.Controllers
             return View();
         }
 
-        // Spieler-Farm bearbeiten (POST)
+        // === AJAX ENDPOINTS ===
+
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdatePlayer(string userId, decimal money,
-            double rebirthMultiplier, int rebirthCount, bool allocationUnlocked,
-            double productionBonus, double sellBonus, double upgradeDiscount, double storageBonus)
+        public async Task<IActionResult> AjaxUpdatePlayer([FromBody] UpdatePlayerRequest request)
         {
-            var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == userId);
-            if (farm == null) return NotFound();
+            try
+            {
+                var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == request.UserId);
+                if (farm == null) return BadRequest("Farm nicht gefunden.");
 
-            farm.Money = money;
-            farm.RebirthMultiplier = rebirthMultiplier;
-            farm.RebirthCount = rebirthCount;
-            farm.AllocationUnlocked = allocationUnlocked;
-            farm.AchievementProductionBonus = productionBonus;
-            farm.AchievementSellBonus = sellBonus;
-            farm.AchievementUpgradeDiscount = upgradeDiscount;
-            farm.AchievementStorageBonus = storageBonus;
+                farm.Money = request.Money;
+                farm.RebirthMultiplier = request.RebirthMultiplier;
+                farm.RebirthCount = request.RebirthCount;
+                farm.AllocationUnlocked = request.AllocationUnlocked;
+                farm.AchievementProductionBonus = request.ProductionBonus;
+                farm.AchievementSellBonus = request.SellBonus;
+                farm.AchievementUpgradeDiscount = request.UpgradeDiscount;
+                farm.AchievementStorageBonus = request.StorageBonus;
 
-            await _db.SaveChangesAsync();
-
-            TempData["Success"] = "Spieler aktualisiert!";
-            return RedirectToAction("EditPlayer", new { userId });
+                await _db.SaveChangesAsync();
+                return Json(new { success = true, message = "Farm aktualisiert!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Fehler: {ex.Message}");
+            }
         }
 
-        // Spieler-Ressource bearbeiten
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateResource(string userId, int resourceId, double amount, double maxStorage)
+        public async Task<IActionResult> AjaxUpdateBuilding([FromBody] UpdateBuildingRequest request)
         {
-            var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == userId);
-            if (farm == null) return NotFound();
+            try
+            {
+                var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == request.UserId);
+                if (farm == null) return BadRequest("Farm nicht gefunden.");
 
-            var ur = await _db.UserResources
-                .FirstOrDefaultAsync(r => r.FarmId == farm.Id && r.ResourceId == resourceId);
-            if (ur == null) return NotFound();
+                var ub = await _db.UserBuildings
+                    .FirstOrDefaultAsync(b => b.FarmId == farm.Id && b.BuildingId == request.BuildingId);
+                if (ub == null) return BadRequest("Gebaeude nicht gefunden.");
 
-            ur.Amount = amount;
-            ur.MaxStorage = maxStorage;
-            await _db.SaveChangesAsync();
+                ub.IsUnlocked = request.IsUnlocked;
+                ub.ProductionLevel = request.ProductionLevel;
+                ub.EfficiencyLevel = request.EfficiencyLevel;
+                ub.CapacityLevel = request.CapacityLevel;
 
-            TempData["Success"] = "Ressource aktualisiert!";
-            return RedirectToAction("EditPlayer", new { userId });
+                await _db.SaveChangesAsync();
+                return Json(new { success = true, message = "Gebaeude aktualisiert!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Fehler: {ex.Message}");
+            }
         }
 
-        // Spieler-Gebaeude bearbeiten
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateBuilding(string userId, int buildingId,
-            bool isUnlocked, int productionLevel, int efficiencyLevel, int capacityLevel)
+        public async Task<IActionResult> AjaxUpdateResource([FromBody] UpdateResourceRequest request)
         {
-            var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == userId);
-            if (farm == null) return NotFound();
+            try
+            {
+                var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == request.UserId);
+                if (farm == null) return BadRequest("Farm nicht gefunden.");
 
-            var ub = await _db.UserBuildings
-                .FirstOrDefaultAsync(b => b.FarmId == farm.Id && b.BuildingId == buildingId);
-            if (ub == null) return NotFound();
+                var ur = await _db.UserResources
+                    .FirstOrDefaultAsync(r => r.FarmId == farm.Id && r.ResourceId == request.ResourceId);
+                if (ur == null) return BadRequest("Ressource nicht gefunden.");
 
-            ub.IsUnlocked = isUnlocked;
-            ub.ProductionLevel = productionLevel;
-            ub.EfficiencyLevel = efficiencyLevel;
-            ub.CapacityLevel = capacityLevel;
-            await _db.SaveChangesAsync();
+                ur.Amount = request.Amount;
+                ur.MaxStorage = request.MaxStorage;
 
-            TempData["Success"] = "Gebaeude aktualisiert!";
-            return RedirectToAction("EditPlayer", new { userId });
+                await _db.SaveChangesAsync();
+                return Json(new { success = true, message = "Ressource aktualisiert!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Fehler: {ex.Message}");
+            }
         }
 
-        // Spieler komplett loeschen (Account + Farm + alles)
+        [HttpPost]
+        public async Task<IActionResult> AjaxResetPlayer([FromBody] string userId)
+        {
+            try
+            {
+                var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == userId);
+                if (farm == null) return BadRequest("Farm nicht gefunden.");
+
+                // Komplett-Reset: Alles auf Anfang
+                farm.Money = 100m;
+                farm.RebirthMultiplier = 1.0;
+                farm.RebirthCount = 0;
+                farm.AllocationUnlocked = false;
+                farm.AchievementProductionBonus = 0;
+                farm.AchievementSellBonus = 0;
+                farm.AchievementUpgradeDiscount = 0;
+                farm.AchievementStorageBonus = 0;
+                farm.LastCalculated = DateTime.UtcNow;
+
+                var userBuildings = await _db.UserBuildings
+                    .Include(ub => ub.Building)
+                    .Where(ub => ub.FarmId == farm.Id)
+                    .ToListAsync();
+
+                foreach (var ub in userBuildings)
+                {
+                    ub.IsUnlocked = ub.Building.Name == "Feld";
+                    ub.ProductionLevel = 0;
+                    ub.EfficiencyLevel = 0;
+                    ub.CapacityLevel = 0;
+                }
+
+                var userResources = await _db.UserResources
+                    .Where(ur => ur.FarmId == farm.Id).ToListAsync();
+
+                foreach (var ur in userResources)
+                {
+                    ur.Amount = 0;
+                    ur.MaxStorage = 100;
+                }
+
+                var allocs = await _db.ResourceAllocations
+                    .Where(ra => ra.FarmId == farm.Id).ToListAsync();
+
+                foreach (var a in allocs)
+                {
+                    a.SellPercentage = 100;
+                }
+
+                var achievements = await _db.UserAchievements
+                    .Where(ua => ua.FarmId == farm.Id).ToListAsync();
+                _db.UserAchievements.RemoveRange(achievements);
+
+                await _db.SaveChangesAsync();
+                return Json(new { success = true, message = "Spieler komplett zurueckgesetzt!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Fehler: {ex.Message}");
+            }
+        }
+
+        // Spieler loeschen
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePlayer(string userId)
@@ -179,14 +270,12 @@ namespace SEW04_Projekt_Bsteh.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return NotFound();
 
-            // Eigenen Admin-Account schuetzen
             if (user.Email == "admin@harvestdynasty.com")
             {
                 TempData["Error"] = "Admin-Account kann nicht geloescht werden!";
                 return RedirectToAction("Players");
             }
 
-            // Farm und alles dazugehoerige loeschen
             var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == userId);
             if (farm != null)
             {
@@ -202,7 +291,6 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 await _db.SaveChangesAsync();
             }
 
-            // User loeschen
             await _userManager.DeleteAsync(user);
 
             TempData["Success"] = $"{user.DisplayName} ({user.Email}) geloescht!";
@@ -217,19 +305,24 @@ namespace SEW04_Projekt_Bsteh.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditResource(int id, string name, decimal sellPrice, int chainOrder)
+        public async Task<IActionResult> AjaxEditResource([FromBody] EditResourceRequest request)
         {
-            var resource = await _db.Resources.FindAsync(id);
-            if (resource == null) return NotFound();
+            try
+            {
+                var resource = await _db.Resources.FindAsync(request.Id);
+                if (resource == null) return BadRequest("Ressource nicht gefunden.");
 
-            resource.Name = name;
-            resource.SellPrice = sellPrice;
-            resource.ChainOrder = chainOrder;
+                resource.Name = request.Name;
+                resource.SellPrice = request.SellPrice;
+                resource.ChainOrder = request.ChainOrder;
 
-            await _db.SaveChangesAsync();
-            TempData["Success"] = $"{name} aktualisiert!";
-            return RedirectToAction("Resources");
+                await _db.SaveChangesAsync();
+                return Json(new { success = true, message = $"{request.Name} aktualisiert!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Fehler: {ex.Message}");
+            }
         }
 
         // === GEBAEUDE VERWALTEN ===
@@ -243,22 +336,26 @@ namespace SEW04_Projekt_Bsteh.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditBuilding(int id, string name, string description,
-            decimal baseCost, double baseProductionRate, double inputPerOutput)
+        public async Task<IActionResult> AjaxEditBuilding([FromBody] EditBuildingRequest request)
         {
-            var building = await _db.Buildings.FindAsync(id);
-            if (building == null) return NotFound();
+            try
+            {
+                var building = await _db.Buildings.FindAsync(request.Id);
+                if (building == null) return BadRequest("Gebaeude nicht gefunden.");
 
-            building.Name = name;
-            building.Description = description;
-            building.BaseCost = baseCost;
-            building.BaseProductionRate = baseProductionRate;
-            building.InputPerOutput = inputPerOutput;
+                building.Name = request.Name;
+                building.Description = request.Description;
+                building.BaseCost = request.BaseCost;
+                building.BaseProductionRate = request.BaseProductionRate;
+                building.InputPerOutput = request.InputPerOutput;
 
-            await _db.SaveChangesAsync();
-            TempData["Success"] = $"{name} aktualisiert!";
-            return RedirectToAction("Buildings");
+                await _db.SaveChangesAsync();
+                return Json(new { success = true, message = $"{request.Name} aktualisiert!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Fehler: {ex.Message}");
+            }
         }
 
         // === ACHIEVEMENTS VERWALTEN ===
@@ -269,26 +366,31 @@ namespace SEW04_Projekt_Bsteh.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAchievement(int id, string name, string description,
-            string bonusType, double bonusValue, string bonusDescription)
+        public async Task<IActionResult> AjaxEditAchievement([FromBody] EditAchievementRequest request)
         {
-            var achievement = await _db.Achievements.FindAsync(id);
-            if (achievement == null) return NotFound();
+            try
+            {
+                var achievement = await _db.Achievements.FindAsync(request.Id);
+                if (achievement == null) return BadRequest("Achievement nicht gefunden.");
 
-            achievement.Name = name;
-            achievement.Description = description;
-            achievement.BonusType = bonusType;
-            achievement.BonusValue = bonusValue;
-            achievement.BonusDescription = bonusDescription;
+                achievement.Name = request.Name;
+                achievement.Description = request.Description;
+                achievement.BonusType = request.BonusType;
+                achievement.BonusValue = request.BonusValue;
+                achievement.BonusDescription = request.BonusDescription;
 
-            await _db.SaveChangesAsync();
-            TempData["Success"] = $"{name} aktualisiert!";
-            return RedirectToAction("Achievements");
+                await _db.SaveChangesAsync();
+                return Json(new { success = true, message = $"{request.Name} aktualisiert!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Fehler: {ex.Message}");
+            }
         }
     }
 
-    // ViewModel fuer Spieler-Uebersicht
+    // === VIEW MODELS & REQUEST MODELS ===
+
     public class PlayerViewModel
     {
         public string UserId { get; set; } = string.Empty;
@@ -301,5 +403,64 @@ namespace SEW04_Projekt_Bsteh.Controllers
         public int RebirthCount { get; set; }
         public double RebirthMultiplier { get; set; }
         public DateTime? LastCalculated { get; set; }
+    }
+
+    public class UpdatePlayerRequest
+    {
+        public string UserId { get; set; } = string.Empty;
+        public decimal Money { get; set; }
+        public double RebirthMultiplier { get; set; }
+        public int RebirthCount { get; set; }
+        public bool AllocationUnlocked { get; set; }
+        public double ProductionBonus { get; set; }
+        public double SellBonus { get; set; }
+        public double UpgradeDiscount { get; set; }
+        public double StorageBonus { get; set; }
+    }
+
+    public class UpdateBuildingRequest
+    {
+        public string UserId { get; set; } = string.Empty;
+        public int BuildingId { get; set; }
+        public bool IsUnlocked { get; set; }
+        public int ProductionLevel { get; set; }
+        public int EfficiencyLevel { get; set; }
+        public int CapacityLevel { get; set; }
+    }
+
+    public class UpdateResourceRequest
+    {
+        public string UserId { get; set; } = string.Empty;
+        public int ResourceId { get; set; }
+        public double Amount { get; set; }
+        public double MaxStorage { get; set; }
+    }
+
+    public class EditResourceRequest
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public decimal SellPrice { get; set; }
+        public int ChainOrder { get; set; }
+    }
+
+    public class EditBuildingRequest
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal BaseCost { get; set; }
+        public double BaseProductionRate { get; set; }
+        public double InputPerOutput { get; set; }
+    }
+
+    public class EditAchievementRequest
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string BonusType { get; set; } = string.Empty;
+        public double BonusValue { get; set; }
+        public string BonusDescription { get; set; } = string.Empty;
     }
 }
