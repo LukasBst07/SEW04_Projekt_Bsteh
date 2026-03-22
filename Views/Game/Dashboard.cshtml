@@ -64,8 +64,8 @@
         }
     </div>
 
-    <!-- Gebaeude -->
-    <h4>Gebaeude</h4>
+    <!-- Gebäude -->
+    <h4>Gebäude</h4>
     <div class="row mb-4" id="buildingsContainer">
         @if (userBuildings != null)
         {
@@ -94,7 +94,7 @@
     <h4>Aktionen</h4>
     <div class="row">
         <div class="col-md-2">
-            <a asp-action="Buildings" class="btn btn-primary w-100 mb-2">Gebaeude</a>
+            <a asp-action="Buildings" class="btn btn-primary w-100 mb-2">Gebäude</a>
         </div>
         <div class="col-md-2">
             <a asp-action="Resources" class="btn btn-success w-100 mb-2">Ressourcen</a>
@@ -157,7 +157,7 @@
                     }
                 });
 
-                // Gebaeude Status aktualisieren
+                // Gebäude Status aktualisieren
                 data.buildings.forEach(function (b) {
                     var card = document.getElementById('building-' + b.id);
                     if (card) {

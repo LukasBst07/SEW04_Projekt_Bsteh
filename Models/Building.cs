@@ -2,7 +2,7 @@
 
 namespace SEW04_Projekt_Bsteh.Models
 {
-    // Stammdaten: Gebaeudetypen (Feld, Muehle, Baeckerei)
+    // Stammdaten: Gebäudetypen (Feld, Mühle, Bäckerei)
     public class Building
     {
         public int Id { get; set; }
@@ -28,7 +28,7 @@ namespace SEW04_Projekt_Bsteh.Models
         public int OutputResourceId { get; set; }
         public Resource OutputResource { get; set; } = null!;
 
-        // Wie viel Input fuer 1 Output (z.B. 2 Weizen = 1 Mehl)
+        // Wie viel Input für 1 Output (z.B. 2 Weizen = 1 Mehl)
         public double InputPerOutput { get; set; }
     }
 }

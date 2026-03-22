@@ -14,7 +14,7 @@
         // Aktuelle Menge im Lager
         public double Amount { get; set; } = 0;
 
-        // Max Lagerkapazitaet
+        // Max LagerKapazität
         public double MaxStorage { get; set; } = 100;
     }
 }

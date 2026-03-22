@@ -5,7 +5,7 @@ namespace SEW04_Projekt_Bsteh.Models
     public class LoginViewModel
     {
         [Required(ErrorMessage = "E-Mail ist erforderlich.")]
-        [EmailAddress(ErrorMessage = "Ungueltige E-Mail-Adresse.")]
+        [EmailAddress(ErrorMessage = "Ungültige E-Mail-Adresse.")]
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Passwort ist erforderlich.")]
@@ -22,7 +22,7 @@ namespace SEW04_Projekt_Bsteh.Models
         public string DisplayName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "E-Mail ist erforderlich.")]
-        [EmailAddress(ErrorMessage = "Ungueltige E-Mail-Adresse.")]
+        [EmailAddress(ErrorMessage = "Ungültige E-Mail-Adresse.")]
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Passwort ist erforderlich.")]
@@ -30,9 +30,9 @@ namespace SEW04_Projekt_Bsteh.Models
         [StringLength(100, MinimumLength = 4, ErrorMessage = "Mindestens 4 Zeichen.")]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Passwort bestaetigen ist erforderlich.")]
+        [Required(ErrorMessage = "Passwort bestätigen ist erforderlich.")]
         [DataType(DataType.Password)]
-        [Compare("Password", ErrorMessage = "Passwoerter stimmen nicht ueberein.")]
+        [Compare("Password", ErrorMessage = "Passwörter stimmen nicht ueberein.")]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

@@ -18,7 +18,7 @@
     {
         <!-- Reset Button -->
         <button class="btn btn-danger mb-4" onclick="resetPlayer('@(user?.Id)')">
-            Komplett zuruecksetzen (Totalreset)
+            Komplett Zurücksetzen (Totalreset)
         </button>
 
         <!-- Farm-Daten -->
@@ -78,10 +78,10 @@
             </div>
         </div>
 
-        <!-- Gebaeude -->
+        <!-- Gebäude -->
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Gebaeude</h5>
+                <h5 class="mb-0">Gebäude</h5>
             </div>
             <div class="card-body">
                 @if (userBuildings != null)
@@ -115,7 +115,7 @@
                                     <input type="number" id="bld-eff-@(ub.BuildingId)" class="form-control" value="@(ub.EfficiencyLevel)" />
                                 </div>
                                 <div class="col-md-2">
-                                    <label class="form-label">Kapazitaet Lv.</label>
+                                    <label class="form-label">Kapazität Lv.</label>
                                     <input type="number" id="bld-cap-@(ub.BuildingId)" class="form-control" value="@(ub.CapacityLevel)" />
                                 </div>
                                 <div class="col-md-2 d-flex align-items-end">
@@ -190,7 +190,7 @@
         <div class="alert alert-warning">Dieser Spieler hat noch keine Farm.</div>
     }
 
-    <a asp-action="Players" class="btn btn-secondary mt-3">Zurueck zur Spielerliste</a>
+    <a asp-action="Players" class="btn btn-secondary mt-3">Zurück zur Spielerliste</a>
 </div>
 
 @section Scripts {

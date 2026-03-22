@@ -66,11 +66,11 @@ namespace SEW04_Projekt_Bsteh.Services
         {
             return achievement.Name switch
             {
-                "Muehlenbesitzer" =>
-                    buildings.Any(b => b.Building.Name == "Muehle" && b.IsUnlocked),
+                "Mühlenbesitzer" =>
+                    buildings.Any(b => b.Building.Name == "Mühle" && b.IsUnlocked),
 
-                "Baeckermeister" =>
-                    buildings.Any(b => b.Building.Name == "Baeckerei" && b.IsUnlocked),
+                "Bäckermeister" =>
+                    buildings.Any(b => b.Building.Name == "Bäckerei" && b.IsUnlocked),
 
                 "Erste 1000 Muenzen" =>
                     farm.Money >= 1000,
@@ -78,18 +78,18 @@ namespace SEW04_Projekt_Bsteh.Services
                 "Erste 10000 Muenzen" =>
                     farm.Money >= 10000,
 
-                "Vollstaendige Kette" =>
+                "Vollständige Kette" =>
                     buildings.Count(b => b.IsUnlocked) >= 3,
 
                 "Lagermeister" =>
                     resources.Any(r => r.Amount >= r.MaxStorage * 0.99),
 
-                "Upgrade-Anfaenger" =>
+                "Upgrade-Anfänger" =>
                     buildings.Any(b => b.ProductionLevel >= 5
                         || b.EfficiencyLevel >= 5
                         || b.CapacityLevel >= 5),
 
-                "Markthaendler" =>
+                "Markthändler" =>
                     // Braucht einen Tracker, kommt spaeter. Erstmal false.
                     false,
 

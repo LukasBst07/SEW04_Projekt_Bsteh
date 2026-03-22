@@ -1,6 +1,6 @@
 ﻿namespace SEW04_Projekt_Bsteh.Models
 {
-    // Request-Models fuer AJAX-Endpoints
+    // Request-Models für AJAX-Endpoints
     public class UpgradeRequest
     {
         public int BuildingId { get; set; }

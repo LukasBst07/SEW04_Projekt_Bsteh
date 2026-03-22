@@ -16,7 +16,7 @@ namespace SEW04_Projekt_Bsteh.Data
             db.Resources.AddRange(weizen, mehl, brot);
             db.SaveChanges();
 
-            // === GEBAEUDE ===
+            // === Gebäude ===
             var feld = new Building
             {
                 Name = "Feld",
@@ -28,9 +28,9 @@ namespace SEW04_Projekt_Bsteh.Data
                 InputPerOutput = 0
             };
 
-            var muehle = new Building
+            var Mühle = new Building
             {
-                Name = "Muehle",
+                Name = "Mühle",
                 Description = "Verarbeitet Weizen zu Mehl.",
                 BaseCost = 500m,
                 BaseProductionRate = 0.5,
@@ -39,9 +39,9 @@ namespace SEW04_Projekt_Bsteh.Data
                 InputPerOutput = 2.0
             };
 
-            var baeckerei = new Building
+            var Bäckerei = new Building
             {
-                Name = "Baeckerei",
+                Name = "Bäckerei",
                 Description = "Verarbeitet Mehl zu Brot.",
                 BaseCost = 2000m,
                 BaseProductionRate = 0.25,
@@ -50,26 +50,26 @@ namespace SEW04_Projekt_Bsteh.Data
                 InputPerOutput = 3.0
             };
 
-            db.Buildings.AddRange(feld, muehle, baeckerei);
+            db.Buildings.AddRange(feld, Mühle, Bäckerei);
             db.SaveChanges();
 
             // === ACHIEVEMENTS ===
             db.Achievements.AddRange(
                 new Achievement
                 {
-                    Name = "Muehlenbesitzer",
-                    Description = "Kaufe die Muehle.",
+                    Name = "Mühlenbesitzer",
+                    Description = "Kaufe die Mühle.",
                     BonusType = "UnlockAllocation",
                     BonusValue = 0,
                     BonusDescription = "Schaltet die Ressourcenverteilung frei."
                 },
                 new Achievement
                 {
-                    Name = "Baeckermeister",
-                    Description = "Kaufe die Baeckerei.",
+                    Name = "Bäckermeister",
+                    Description = "Kaufe die Bäckerei.",
                     BonusType = "StorageBoost",
                     BonusValue = 0.5,
-                    BonusDescription = "Lagerkapazitaet aller Ressourcen +50%"
+                    BonusDescription = "LagerKapazität aller Ressourcen +50%"
                 },
                 new Achievement
                 {
@@ -77,12 +77,12 @@ namespace SEW04_Projekt_Bsteh.Data
                     Description = "Erreiche 1000 Muenzen.",
                     BonusType = "ProductionBoost",
                     BonusValue = 0.1,
-                    BonusDescription = "Produktionsrate aller Gebaeude +10%"
+                    BonusDescription = "Produktionsrate aller Gebäude +10%"
                 },
                 new Achievement
                 {
-                    Name = "Vollstaendige Kette",
-                    Description = "Schalte alle 3 Gebaeude frei.",
+                    Name = "Vollständige Kette",
+                    Description = "Schalte alle 3 Gebäude frei.",
                     BonusType = "UpgradeDiscount",
                     BonusValue = 0.15,
                     BonusDescription = "Upgrade-Kosten -15%"
@@ -90,10 +90,10 @@ namespace SEW04_Projekt_Bsteh.Data
                 new Achievement
                 {
                     Name = "Lagermeister",
-                    Description = "Fuelle ein Lager komplett.",
+                    Description = "Fülle ein Lager komplett.",
                     BonusType = "StorageBoost",
                     BonusValue = 1.0,
-                    BonusDescription = "Lagerkapazitaet aller Ressourcen nochmal +100%"
+                    BonusDescription = "LagerKapazität aller Ressourcen nochmal +100%"
                 },
                 new Achievement
                 {
@@ -105,15 +105,15 @@ namespace SEW04_Projekt_Bsteh.Data
                 },
                 new Achievement
                 {
-                    Name = "Upgrade-Anfaenger",
+                    Name = "Upgrade-Anfänger",
                     Description = "Bringe ein Upgrade auf Level 5.",
                     BonusType = "ProductionBoost",
                     BonusValue = 0.15,
-                    BonusDescription = "Produktionsrate aller Gebaeude +15%"
+                    BonusDescription = "Produktionsrate aller Gebäude +15%"
                 },
                 new Achievement
                 {
-                    Name = "Markthaendler",
+                    Name = "Markthändler",
                     Description = "Verkaufe manuell 100 Einheiten am Marktplatz.",
                     BonusType = "SellBoost",
                     BonusValue = 0.1,

@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Gebaeude";
+    ViewData["Title"] = "Gebäude";
 
     var farm = ViewBag.Farm as SEW04_Projekt_Bsteh.Models.Farm;
     var userBuildings = ViewBag.UserBuildings as List<SEW04_Projekt_Bsteh.Models.UserBuilding>;
@@ -7,7 +7,7 @@
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Gebaeude</h1>
+        <h1>Gebäude</h1>
         <span class="badge bg-dark fs-6" id="moneyDisplay">Geld: @(farm?.Money.ToString("F2"))</span>
     </div>
 
@@ -51,7 +51,7 @@
 
                                     <button class="btn btn-outline-warning btn-sm w-100 mb-1"
                                             onclick="upgradeBuilding(@(ub.BuildingId), 'capacity')">
-                                        Kapazitaet Lv. <span id="cap-lvl-@(ub.BuildingId)">@(ub.CapacityLevel)</span>
+                                        Kapazität Lv. <span id="cap-lvl-@(ub.BuildingId)">@(ub.CapacityLevel)</span>
                                         → <span id="cap-next-@(ub.BuildingId)">@(ub.CapacityLevel + 1)</span>
                                     </button>
                                 }
@@ -70,7 +70,7 @@
         }
     </div>
 
-    <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurueck zum Dashboard</a>
+    <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurück zum Dashboard</a>
 </div>
 
 @section Scripts {

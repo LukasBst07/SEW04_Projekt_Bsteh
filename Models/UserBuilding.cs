@@ -1,6 +1,6 @@
 ﻿namespace SEW04_Projekt_Bsteh.Models
 {
-    // Welche Gebaeude hat der Spieler + Upgrade-Stufen
+    // Welche Gebäude hat der Spieler + Upgrade-Stufen
     public class UserBuilding
     {
         public int Id { get; set; }
@@ -20,7 +20,7 @@
         // Upgrade: Effizienz (weniger Input)
         public int EfficiencyLevel { get; set; } = 0;
 
-        // Upgrade: Lagerkapazitaet
+        // Upgrade: LagerKapazität
         public int CapacityLevel { get; set; } = 0;
     }
 }

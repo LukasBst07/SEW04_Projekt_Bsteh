@@ -23,7 +23,7 @@ namespace SEW04_Projekt_Bsteh.Models
         // Staerke des Bonus (z.B. 0.1 = +10%, 0.5 = +50%)
         public double BonusValue { get; set; } = 0;
 
-        // Beschreibung des Bonus fuer die UI
+        // Beschreibung des Bonus für die UI
         [StringLength(200)]
         public string BonusDescription { get; set; } = string.Empty;
     }

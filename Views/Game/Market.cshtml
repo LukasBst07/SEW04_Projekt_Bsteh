@@ -24,8 +24,8 @@
                             <h5 class="mb-0">@(ur.Resource.Name)</h5>
                         </div>
                         <div class="card-body">
-                            <p>Verfuegbar: <strong id="available-@(ur.ResourceId)">@(ur.Amount.ToString("F1"))</strong></p>
-                            <p>Preis pro Stueck: <strong>@(ur.Resource.SellPrice)</strong></p>
+                            <p>Verfügbar: <strong id="available-@(ur.ResourceId)">@(ur.Amount.ToString("F1"))</strong></p>
+                            <p>Preis pro Stück: <strong>@(ur.Resource.SellPrice)</strong></p>
                             <p>Gesamtwert: <strong id="value-@(ur.ResourceId)">@((ur.Amount * (double)ur.Resource.SellPrice).ToString("F2"))</strong></p>
 
                             <hr />
@@ -46,7 +46,7 @@
         }
     </div>
 
-    <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurueck zum Dashboard</a>
+    <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurück zum Dashboard</a>
 </div>
 
 @section Scripts {

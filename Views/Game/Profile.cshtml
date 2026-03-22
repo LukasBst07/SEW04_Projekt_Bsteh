@@ -44,7 +44,7 @@
                     <h5 class="mb-0">Statistiken</h5>
                 </div>
                 <div class="card-body">
-                    <p>Gebaeude freigeschaltet: <strong>@(userBuildings?.Count(ub => ub.IsUnlocked) ?? 0) / @(userBuildings?.Count ?? 0)</strong></p>
+                    <p>Gebäude freigeschaltet: <strong>@(userBuildings?.Count(ub => ub.IsUnlocked) ?? 0) / @(userBuildings?.Count ?? 0)</strong></p>
                     <p>Achievements: <strong>@(achievementCount) / @(totalAchievements)</strong></p>
                     <p>Rebirths: <strong>@(farm?.RebirthCount)</strong></p>
                     <p>Multiplikator: <strong>x@(farm?.RebirthMultiplier.ToString("F1"))</strong></p>
@@ -73,12 +73,12 @@
             <h5 class="mb-0">Rebirth</h5>
         </div>
         <div class="card-body">
-            <p>Setze deine Farm zurueck und erhalte einen dauerhaften Multiplikator.</p>
+            <p>Setze deine Farm Zurück und erhalte einen dauerhaften Multiplikator.</p>
             <p>Aktueller Multiplikator: <strong>x@(farm?.RebirthMultiplier.ToString("F1"))</strong></p>
             <p>Nach Rebirth: <strong>x@((farm != null ? farm.RebirthMultiplier + 0.5 : 1.5).ToString("F1"))</strong></p>
 
             <div class="alert alert-warning mt-3">
-                <strong>Achtung:</strong> Rebirth setzt zurueck: Geld, Gebaeude, Upgrades, Ressourcen, Achievements und alle Boni.
+                <strong>Achtung:</strong> Rebirth setzt Zurück: Geld, Gebäude, Upgrades, Ressourcen, Achievements und alle Boni.
                 Nur der Multiplikator und die Rebirth-Anzahl bleiben.
             </div>
 
@@ -91,13 +91,13 @@
             else
             {
                 <button class="btn btn-secondary w-100" disabled>
-                    Alle Gebaeude freischalten um Rebirth zu nutzen
+                    Alle Gebäude freischalten um Rebirth zu nutzen
                 </button>
             }
         </div>
     </div>
 
-    <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurueck zum Dashboard</a>
+    <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurück zum Dashboard</a>
 </div>
 
 @section Scripts {
@@ -117,7 +117,7 @@
         }
 
         function confirmRebirth() {
-            if (confirm('Bist du sicher? Alles ausser Multiplikator wird zurueckgesetzt!')) {
+            if (confirm('Bist du sicher? Alles ausser Multiplikator wird Zurückgesetzt!')) {
                 doRebirth();
             }
         }

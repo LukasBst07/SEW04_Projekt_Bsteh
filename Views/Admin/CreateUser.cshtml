@@ -1,0 +1,48 @@
+﻿@{
+    ViewData["Title"] = "Account erstellen";
+}
+
+<div class="container mt-4">
+    <h1>Account erstellen</h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="card" style="max-width: 500px;">
+        <div class="card-header">
+            <h5 class="mb-0">Neuer Account</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="CreateUser" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Anzeigename</label>
+                    <input type="text" name="displayName" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">E-Mail</label>
+                    <input type="email" name="email" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Passwort</label>
+                    <input type="password" name="password" class="form-control" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Rolle</label>
+                    <select name="role" class="form-select">
+                        <option value="Spieler">Spieler</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Erstellen</button>
+            </form>
+        </div>
+    </div>
+
+    <a asp-action="Players" class="btn btn-secondary mt-3">Zurück</a>
+</div>

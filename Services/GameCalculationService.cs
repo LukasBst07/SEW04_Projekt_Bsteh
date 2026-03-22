@@ -42,7 +42,7 @@ namespace SEW04_Projekt_Bsteh.Services
                     .Where(ra => ra.FarmId == farmId)
                     .ToListAsync();
 
-                // Sortierung: Feld zuerst, dann Muehle, dann Baeckerei
+                // Sortierung: Feld zuerst, dann Mühle, dann Bäckerei
                 var sortedBuildings = userBuildings
                     .OrderBy(ub => ub.Building.InputResourceId == null ? 0 : 1)
                     .ThenBy(ub => ub.Building.OutputResourceId)

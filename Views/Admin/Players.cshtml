@@ -4,7 +4,12 @@
 }
 
 <div class="container mt-4">
-    <h1>Spieler verwalten</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Spieler verwalten</h1>
+        <a asp-action="CreateUser" class="btn btn-success">Neuer Account</a>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
 
     @if (TempData["Success"] != null)
     {
@@ -24,7 +29,7 @@
             </div>
             <div class="col-md-2">
                 <select name="role" class="form-select">
-                    <option value="all" selected="@(ViewBag.Role == "all" ? "selected" : null)">Alle Rollen</option>
+                    <option value="all">Alle Rollen</option>
                     <option value="Admin" selected="@(ViewBag.Role == "Admin" ? "selected" : null)">Admin</option>
                     <option value="Spieler" selected="@(ViewBag.Role == "Spieler" ? "selected" : null)">Spieler</option>
                 </select>
@@ -35,7 +40,7 @@
                     <option value="money_desc" selected="@(ViewBag.SortBy == "money_desc" ? "selected" : null)">Geld (absteigend)</option>
                     <option value="money_asc" selected="@(ViewBag.SortBy == "money_asc" ? "selected" : null)">Geld (aufsteigend)</option>
                     <option value="login_desc" selected="@(ViewBag.SortBy == "login_desc" ? "selected" : null)">Letzter Login (neueste)</option>
-                    <option value="login_asc" selected="@(ViewBag.SortBy == "login_asc" ? "selected" : null)">Letzter Login (aelteste)</option>
+                    <option value="login_asc" selected="@(ViewBag.SortBy == "login_asc" ? "selected" : null)">Letzter Login (älteste)</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -63,17 +68,29 @@
         <tbody>
             @foreach (var p in Model)
             {
-                <tr>
+                <tr id="row-@(p.UserId)">
                     <td>@(p.DisplayName)</td>
                     <td>@(p.Email)</td>
                     <td>
-                        @if (p.Role == "Admin")
+                        @if (p.Email != "admin@harvestdynasty.com")
                         {
-                            <span class="badge" style="background-color: #ff6b6b;">Admin</span>
+                            <select class="form-select form-select-sm" style="width: 120px;"
+                                    onchange="changeRole('@(p.UserId)', this.value)">
+                                @if (p.Role == "Admin")
+                                {
+                                    <option value="Admin" selected>Admin</option>
+                                    <option value="Spieler">Spieler</option>
+                                }
+                                else
+                                {
+                                    <option value="Admin">Admin</option>
+                                    <option value="Spieler" selected>Spieler</option>
+                                }
+                            </select>
                         }
                         else
                         {
-                            <span class="badge bg-success">Spieler</span>
+                            <span class="badge" style="background-color: #ff6b6b;">Admin</span>
                         }
                     </td>
                     <td>@(p.Money.ToString("F2"))</td>
@@ -87,9 +104,9 @@
                         @if (p.Email != "admin@harvestdynasty.com")
                         {
                             <form asp-action="DeletePlayer" method="post" class="d-inline"
-                                  onsubmit="return confirm('Wirklich loeschen? Alles wird geloescht!')">
+                                  onsubmit="return confirm('Wirklich löschen? Alles wird gelöscht!')">
                                 <input type="hidden" name="userId" value="@(p.UserId)" />
-                                <button class="btn btn-danger btn-sm">Loeschen</button>
+                                <button class="btn btn-danger btn-sm">Löschen</button>
                             </form>
                         }
                     </td>
@@ -98,5 +115,42 @@
         </tbody>
     </table>
 
-    <a asp-action="Index" class="btn btn-secondary mt-3">Zurueck</a>
+    <a asp-action="Index" class="btn btn-secondary mt-3">Zurück</a>
 </div>
+
+@section Scripts {
+    <script>
+        function showToast(message, type) {
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast show align-items-center text-white bg-' + type + ' border-0';
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML =
+                '<div class="d-flex">' +
+                    '<div class="toast-body">' + message + '</div>' +
+                    '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+                '</div>';
+            container.appendChild(toast);
+            setTimeout(function () { toast.remove(); }, 4000);
+        }
+
+        async function changeRole(userId, newRole) {
+            try {
+                var response = await fetch('/Admin/AjaxChangeRole', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: userId, newRole: newRole })
+                });
+                if (response.ok) {
+                    var result = await response.json();
+                    showToast(result.message, 'success');
+                } else {
+                    var error = await response.text();
+                    showToast(error, 'danger');
+                }
+            } catch (e) {
+                showToast('Fehler!', 'danger');
+            }
+        }
+    </script>
+}

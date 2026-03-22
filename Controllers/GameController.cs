@@ -68,7 +68,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
             return View();
         }
 
-        // ==================== GEBAEUDE ====================
+        // ==================== Gebäude ====================
         public async Task<IActionResult> Buildings()
         {
             var farm = await LoadFarmWithCalculation();
@@ -103,7 +103,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
 
             if (userBuilding.IsUnlocked)
             {
-                TempData["Error"] = "Gebaeude ist bereits freigeschaltet.";
+                TempData["Error"] = "Gebäude ist bereits freigeschaltet.";
                 return RedirectToAction("Buildings");
             }
 
@@ -312,7 +312,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
             // Achievements pruefen nach Verkauf
             await _achievements.CheckAchievements(farm.Id);
 
-            TempData["Success"] = $"{amount:F1} {userResource.Resource.Name} fuer {income:F2} verkauft!";
+            TempData["Success"] = $"{amount:F1} {userResource.Resource.Name} für {income:F2} verkauft!";
             return RedirectToAction("Market");
         }
 
@@ -343,7 +343,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
         }
         // ==================== API ENDPOINTS (AJAX) ====================
 
-        // Gibt den aktuellen Spielstand als JSON zurueck
+        // Gibt den aktuellen Spielstand als JSON Zurück
         [HttpGet]
         public async Task<IActionResult> GetGameState()
         {
@@ -410,7 +410,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
             });
         }
 
-        // AJAX: Gebaeude kaufen
+        // AJAX: Gebäude kaufen
         [HttpPost]
         public async Task<IActionResult> AjaxBuyBuilding([FromBody] int buildingId)
         {
@@ -421,7 +421,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 .Include(ub => ub.Building)
                 .FirstOrDefaultAsync(ub => ub.FarmId == farm.Id && ub.BuildingId == buildingId);
 
-            if (userBuilding == null) return BadRequest("Gebaeude nicht gefunden.");
+            if (userBuilding == null) return BadRequest("Gebäude nicht gefunden.");
             if (userBuilding.IsUnlocked) return BadRequest("Bereits freigeschaltet.");
             if (farm.Money < userBuilding.Building.BaseCost) return BadRequest("Nicht genug Geld!");
 
@@ -433,7 +433,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
             return Json(new { success = true, message = $"{userBuilding.Building.Name} gekauft!" });
         }
 
-        // AJAX: Gebaeude upgraden
+        // AJAX: Gebäude upgraden
         [HttpPost]
         public async Task<IActionResult> AjaxUpgradeBuilding([FromBody] UpgradeRequest request)
         {
@@ -445,7 +445,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 .FirstOrDefaultAsync(ub => ub.FarmId == farm.Id && ub.BuildingId == request.BuildingId);
 
             if (userBuilding == null || !userBuilding.IsUnlocked)
-                return BadRequest("Gebaeude nicht verfuegbar.");
+                return BadRequest("Gebäude nicht Verfügbar.");
 
             int currentLevel = request.UpgradeType switch
             {
@@ -455,7 +455,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 _ => -1
             };
 
-            if (currentLevel == -1) return BadRequest("Ungueltiger Upgrade-Typ.");
+            if (currentLevel == -1) return BadRequest("Ungültiger Upgrade-Typ.");
 
             var cost = userBuilding.Building.BaseCost * (decimal)(currentLevel + 1) * 0.5m;
             if (cost < 50) cost = 50;
@@ -537,7 +537,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
             await _db.SaveChangesAsync();
             await _achievements.CheckAchievements(farm.Id);
 
-            return Json(new { success = true, message = $"{amount:F1} {userResource.Resource.Name} fuer {income:F2} verkauft!" });
+            return Json(new { success = true, message = $"{amount:F1} {userResource.Resource.Name} für {income:F2} verkauft!" });
         }
 
         // ==================== REBIRTH ====================
@@ -548,14 +548,14 @@ namespace SEW04_Projekt_Bsteh.Controllers
             var farm = await LoadFarmWithCalculation();
             if (farm == null) return RedirectToAction("Profile");
 
-            // Mindestanforderung: Alle 3 Gebaeude freigeschaltet
+            // Mindestanforderung: Alle 3 Gebäude freigeschaltet
             var unlockedCount = await _db.UserBuildings
                 .Where(ub => ub.FarmId == farm.Id && ub.IsUnlocked)
                 .CountAsync();
 
             if (unlockedCount < 3)
             {
-                TempData["Error"] = "Du musst alle Gebaeude freigeschaltet haben um Rebirth zu nutzen!";
+                TempData["Error"] = "Du musst alle Gebäude freigeschaltet haben um Rebirth zu nutzen!";
                 return RedirectToAction("Profile");
             }
 
@@ -563,20 +563,20 @@ namespace SEW04_Projekt_Bsteh.Controllers
             farm.RebirthMultiplier += 0.5;
             farm.RebirthCount++;
 
-            // Geld zuruecksetzen
+            // Geld Zurücksetzen
             farm.Money = 100m;
 
-            // Achievement-Boni zuruecksetzen
+            // Achievement-Boni Zurücksetzen
             farm.AllocationUnlocked = false;
             farm.AchievementProductionBonus = 0;
             farm.AchievementSellBonus = 0;
             farm.AchievementUpgradeDiscount = 0;
             farm.AchievementStorageBonus = 0;
 
-            // Zeitstempel zuruecksetzen
+            // Zeitstempel Zurücksetzen
             farm.LastCalculated = DateTime.UtcNow;
 
-            // Alle UserBuildings zuruecksetzen (nur Feld bleibt freigeschaltet)
+            // Alle UserBuildings Zurücksetzen (nur Feld bleibt freigeschaltet)
             var userBuildings = await _db.UserBuildings
                 .Include(ub => ub.Building)
                 .Where(ub => ub.FarmId == farm.Id)
@@ -590,7 +590,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 ub.CapacityLevel = 0;
             }
 
-            // Alle UserResources zuruecksetzen
+            // Alle UserResources Zurücksetzen
             var userResources = await _db.UserResources
                 .Where(ur => ur.FarmId == farm.Id)
                 .ToListAsync();
@@ -601,7 +601,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 ur.MaxStorage = 100;
             }
 
-            // Alle Allocations zuruecksetzen (100% verkaufen)
+            // Alle Allocations Zurücksetzen (100% verkaufen)
             var allocations = await _db.ResourceAllocations
                 .Where(ra => ra.FarmId == farm.Id)
                 .ToListAsync();
@@ -611,7 +611,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 a.SellPercentage = 100;
             }
 
-            // Alle UserAchievements loeschen
+            // Alle UserAchievements Löschen
             var achievements = await _db.UserAchievements
                 .Where(ua => ua.FarmId == farm.Id)
                 .ToListAsync();
@@ -636,7 +636,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 .CountAsync();
 
             if (unlockedCount < 3)
-                return BadRequest("Du musst alle Gebaeude freigeschaltet haben!");
+                return BadRequest("Du musst alle Gebäude freigeschaltet haben!");
 
             farm.RebirthMultiplier += 0.5;
             farm.RebirthCount++;

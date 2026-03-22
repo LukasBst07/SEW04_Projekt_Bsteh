@@ -10,7 +10,7 @@ RUN dotnet publish "./SEW04_Projekt_Bsteh.csproj" -c Release -o /app/publish /p:
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
-# Datenordner fuer SQLite
+# Datenordner für SQLite
 RUN mkdir -p /app/data
 
 ENV ASPNETCORE_URLS=http://+:8080
