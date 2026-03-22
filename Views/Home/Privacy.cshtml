@@ -1,6 +1,65 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Impressum & Datenschutz";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="container mt-4" style="max-width: 800px;">
+    <h1>Impressum</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>Angaben gemäß Offenlegungspflicht</h5>
+            <p>
+                <strong>Lukas Bsteh</strong><br />
+                Schulprojekt im Rahmen des Unterrichtsfachs Softwareentwicklung<br />
+                Francisco Josephinum<br />
+                Schloss Weinzierl 1, 3250 Wieselburg<br />
+                Österreich
+            </p>
+            <h5 class="mt-4">Kontakt</h5>
+            <p>
+                E-Mail: <a href="mailto:lukas.bsteh@josephinum.at">lukas.bsteh@josephinum.at</a>
+            </p>
+            <h5 class="mt-4">Projektinformation</h5>
+            <p>
+                HarvestDynasty ist ein Schulprojekt, erstellt im Schuljahr 2025/26 an der Abteilung
+                Informationstechnologie in der Landwirtschaft des Francisco Josephinum. Es handelt sich um eine
+                landwirtschaftliche Idle-Simulation, entwickelt mit ASP.NET Core MVC, Entity Framework Core
+                und SQLite.
+            </p>
+        </div>
+    </div>
+
+    <h1>Datenschutz</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>Welche Daten werden gespeichert?</h5>
+            <p>
+                Bei der Registrierung werden E-Mail-Adresse, Anzeigename und ein verschlüsseltes Passwort
+                gespeichert. Im Spielverlauf werden Spielfortschrittsdaten wie Geld, Ressourcen, Gebäude
+                und Achievements gespeichert.
+            </p>
+
+            <h5 class="mt-4">Wie werden die Daten verwendet?</h5>
+            <p>
+                Die Daten werden ausschließlich für den Betrieb des Spiels verwendet. Es findet keine
+                Weitergabe an Dritte statt. Es werden keine Tracking-Tools, Cookies zu Werbezwecken
+                oder Analysedienste eingesetzt.
+            </p>
+
+            <h5 class="mt-4">Datenlöschung</h5>
+            <p>
+                Spieler können ihren Account jederzeit vom Administrator löschen lassen. Dabei werden
+                alle zugehörigen Daten vollständig aus der Datenbank entfernt.
+            </p>
+
+            <h5 class="mt-4">Technische Informationen</h5>
+            <p>
+                Die Anwendung verfügt über ein eigens entwickeltes Login- und Registrierungssystem
+                mit Rollenverwaltung (Admin/Spieler). Passwörter werden gehasht gespeichert und sind
+                nicht im Klartext einsehbar. Die Datenhaltung erfolgt über eine SQLite-Datenbank
+                mit Entity Framework Core.
+            </p>
+        </div>
+    </div>
+</div>

@@ -9,48 +9,48 @@ namespace SEW04_Projekt_Bsteh.Data
             if (db.Resources.Any()) return;
 
             // === RESSOURCEN ===
-            var weizen = new Resource { Name = "Weizen", SellPrice = 2m, ChainOrder = 0 };
-            var mehl = new Resource { Name = "Mehl", SellPrice = 5m, ChainOrder = 1 };
+            var weizen = new Resource { Name = "Weizen", SellPrice = 1m, ChainOrder = 0 };
+            var mehl = new Resource { Name = "Mehl", SellPrice = 4m, ChainOrder = 1 };
             var brot = new Resource { Name = "Brot", SellPrice = 15m, ChainOrder = 2 };
 
             db.Resources.AddRange(weizen, mehl, brot);
             db.SaveChanges();
 
-            // === Gebäude ===
+            // === GEBÄUDE ===
             var feld = new Building
             {
                 Name = "Feld",
                 Description = "Produziert Weizen aus dem Nichts.",
                 BaseCost = 0m,
-                BaseProductionRate = 1.0,
+                BaseProductionRate = 0.5,
                 InputResourceId = null,
                 OutputResourceId = weizen.Id,
                 InputPerOutput = 0
             };
 
-            var Mühle = new Building
+            var muehle = new Building
             {
                 Name = "Mühle",
                 Description = "Verarbeitet Weizen zu Mehl.",
-                BaseCost = 500m,
-                BaseProductionRate = 0.5,
+                BaseCost = 800m,
+                BaseProductionRate = 0.2,
                 InputResourceId = weizen.Id,
                 OutputResourceId = mehl.Id,
-                InputPerOutput = 2.0
-            };
-
-            var Bäckerei = new Building
-            {
-                Name = "Bäckerei",
-                Description = "Verarbeitet Mehl zu Brot.",
-                BaseCost = 2000m,
-                BaseProductionRate = 0.25,
-                InputResourceId = mehl.Id,
-                OutputResourceId = brot.Id,
                 InputPerOutput = 3.0
             };
 
-            db.Buildings.AddRange(feld, Mühle, Bäckerei);
+            var baeckerei = new Building
+            {
+                Name = "Bäckerei",
+                Description = "Verarbeitet Mehl zu Brot.",
+                BaseCost = 5000m,
+                BaseProductionRate = 0.08,
+                InputResourceId = mehl.Id,
+                OutputResourceId = brot.Id,
+                InputPerOutput = 4.0
+            };
+
+            db.Buildings.AddRange(feld, muehle, baeckerei);
             db.SaveChanges();
 
             // === ACHIEVEMENTS ===
@@ -69,12 +69,12 @@ namespace SEW04_Projekt_Bsteh.Data
                     Description = "Kaufe die Bäckerei.",
                     BonusType = "StorageBoost",
                     BonusValue = 0.5,
-                    BonusDescription = "LagerKapazität aller Ressourcen +50%"
+                    BonusDescription = "Lagerkapazität aller Ressourcen +50%"
                 },
                 new Achievement
                 {
-                    Name = "Erste 1000 Muenzen",
-                    Description = "Erreiche 1000 Muenzen.",
+                    Name = "Erste 1000 Münzen",
+                    Description = "Erreiche 1000 Münzen.",
                     BonusType = "ProductionBoost",
                     BonusValue = 0.1,
                     BonusDescription = "Produktionsrate aller Gebäude +10%"
@@ -93,12 +93,12 @@ namespace SEW04_Projekt_Bsteh.Data
                     Description = "Fülle ein Lager komplett.",
                     BonusType = "StorageBoost",
                     BonusValue = 1.0,
-                    BonusDescription = "LagerKapazität aller Ressourcen nochmal +100%"
+                    BonusDescription = "Lagerkapazität aller Ressourcen nochmal +100%"
                 },
                 new Achievement
                 {
-                    Name = "Erste 10000 Muenzen",
-                    Description = "Erreiche 10000 Muenzen.",
+                    Name = "Erste 10000 Münzen",
+                    Description = "Erreiche 10000 Münzen.",
                     BonusType = "SellBoost",
                     BonusValue = 0.2,
                     BonusDescription = "Verkaufspreise +20%"

@@ -11,7 +11,7 @@ using SEW04_Projekt_Bsteh.Data;
 namespace SEW04_Projekt_Bsteh.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260322133856_InitialCreate")]
+    [Migration("20260322145110_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

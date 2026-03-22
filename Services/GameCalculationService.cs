@@ -52,13 +52,14 @@ namespace SEW04_Projekt_Bsteh.Services
                 {
                     var building = ub.Building;
 
-                    // Produktionsrate mit allen Boni
+                    // Produktionsrate: +10% pro Level
                     var rate = building.BaseProductionRate;
-                    rate *= (1 + ub.ProductionLevel * 0.2);
+                    rate *= (1 + ub.ProductionLevel * 0.10);
                     rate *= farm.RebirthMultiplier;
                     rate *= (1 + farm.AchievementProductionBonus);
 
-                    var efficiency = 1.0 / (1 + ub.EfficiencyLevel * 0.1);
+                    // Effizienz: -8% Input pro Level
+                    var efficiency = 1.0 / (1 + ub.EfficiencyLevel * 0.08);
 
                     var maxProduction = rate * secondsPassed;
 
@@ -72,7 +73,6 @@ namespace SEW04_Projekt_Bsteh.Services
 
                         var inputNeeded = maxProduction * building.InputPerOutput * efficiency;
 
-                        // Nur weiterverarbeiten wenn Allocation freigeschaltet
                         double processPercent;
                         if (farm.AllocationUnlocked)
                         {
@@ -104,15 +104,15 @@ namespace SEW04_Projekt_Bsteh.Services
 
                     if (outputResource != null)
                     {
-                        // BUG FIX: Korrekte MaxStorage Berechnung
-                        var effectiveMaxStorage = CalculateEffectiveMaxStorage(outputResource.MaxStorage, farm);
-                        var newAmount = outputResource.Amount + maxProduction;
-                        // BUG FIX: Lager darf nicht ueberschritten werden
-                        outputResource.Amount = Math.Min(newAmount, effectiveMaxStorage);
+                        // Kapazität: +20% pro Level
+                        var effectiveMaxStorage = outputResource.MaxStorage
+                            * (1 + ub.CapacityLevel * 0.20)
+                            * (1 + farm.AchievementStorageBonus);
+                        outputResource.Amount = Math.Min(outputResource.Amount + maxProduction, effectiveMaxStorage);
                     }
                 }
 
-                // Verkauf mit Achievement-Preisbonus
+                // Verkauf
                 decimal totalIncome = 0m;
 
                 foreach (var ur in userResources)
@@ -123,9 +123,6 @@ namespace SEW04_Projekt_Bsteh.Services
                         var allocation = allocations
                             .FirstOrDefault(a => a.ResourceId == ur.ResourceId);
                         sellPercent = allocation != null ? allocation.SellPercentage / 100.0 : 1.0;
-
-                        // BUG FIX: Letzte Ressource in der Kette (hoechster ChainOrder)
-                        // hat keine Weiterverarbeitung, immer 100% verkaufen wenn nicht anders eingestellt
                     }
                     else
                     {
@@ -135,7 +132,6 @@ namespace SEW04_Projekt_Bsteh.Services
                     var sellAmount = ur.Amount * sellPercent;
                     if (sellAmount <= 0) continue;
 
-                    // Preis mit Sell-Bonus
                     var price = ur.Resource.SellPrice * (1 + (decimal)farm.AchievementSellBonus);
                     var income = (decimal)sellAmount * price;
                     totalIncome += income;
@@ -151,12 +147,10 @@ namespace SEW04_Projekt_Bsteh.Services
             }
             catch (Exception ex)
             {
-                // Fehler loggen aber App nicht crashen lassen
                 Console.WriteLine($"Fehler bei Idle-Berechnung: {ex.Message}");
             }
         }
 
-        // Effektive MaxStorage berechnen mit allen Boni
         public static double CalculateEffectiveMaxStorage(double baseMaxStorage, Farm farm)
         {
             return baseMaxStorage * (1 + farm.AchievementStorageBonus);

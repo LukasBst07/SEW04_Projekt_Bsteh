@@ -8,11 +8,23 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SEW04_Projekt_Bsteh.styles.css" asp-append-version="true" />
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             background: linear-gradient(135deg, #f5f0e1 0%, #e8d5b7 50%, #d4e7c5 100%);
             color: #2d2d2d;
-            min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .content-wrap {
+            flex: 1;
         }
 
         /* Navbar */
@@ -200,17 +212,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        /* Footer */
-        footer {
-            background: linear-gradient(90deg, #2d6a4f, #40916c);
-            color: #d4e7c5;
-            border-top: 3px solid #f4a261 !important;
-        }
-
-            footer a {
-                color: #ffd166 !important;
-            }
-
         /* Links */
         a {
             color: #2d6a4f;
@@ -303,14 +304,18 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-5 mb-4">
-            @RenderBody()
-        </main>
+    <div class="content-wrap">
+        <div class="container">
+            <main role="main" class="pb-4">
+                @RenderBody()
+            </main>
+        </div>
     </div>
-    <footer class="border-top footer text-muted mt-5 py-3">
+    <footer class="py-3" style="background: linear-gradient(90deg, #2d6a4f, #40916c); border-top: 3px solid #f4a261;">
         <div class="container text-center">
-            &copy; 2026 - HarvestDynasty
+            <span style="color: #d4e7c5;">&copy; 2026 - HarvestDynasty</span>
+            <span style="color: #d4e7c5;"> - </span>
+            <a asp-controller="Home" asp-action="Privacy" style="color: #ffd166; text-decoration: none; font-weight: 600;">Impressum & Datenschutz</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

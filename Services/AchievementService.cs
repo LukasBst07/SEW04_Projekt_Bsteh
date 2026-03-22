@@ -4,7 +4,6 @@ using SEW04_Projekt_Bsteh.Models;
 
 namespace SEW04_Projekt_Bsteh.Services
 {
-    // Prueft ob Achievements erreicht wurden und wendet Boni an
     public class AchievementService
     {
         private readonly ApplicationDbContext _db;
@@ -14,7 +13,6 @@ namespace SEW04_Projekt_Bsteh.Services
             _db = db;
         }
 
-        // Alle Achievements pruefen und neue freischalten
         public async Task CheckAchievements(int farmId)
         {
             var farm = await _db.Farms.FindAsync(farmId);
@@ -38,14 +36,12 @@ namespace SEW04_Projekt_Bsteh.Services
 
             foreach (var achievement in allAchievements)
             {
-                // Schon freigeschaltet? Skip.
                 if (unlockedIds.Contains(achievement.Id)) continue;
 
                 bool earned = CheckCondition(achievement, farm, userBuildings, userResources);
 
                 if (earned)
                 {
-                    // Achievement freischalten
                     _db.UserAchievements.Add(new UserAchievement
                     {
                         FarmId = farmId,
@@ -53,7 +49,6 @@ namespace SEW04_Projekt_Bsteh.Services
                         UnlockedAt = DateTime.UtcNow
                     });
 
-                    // Bonus anwenden
                     ApplyBonus(farm, achievement);
                 }
             }
@@ -72,10 +67,10 @@ namespace SEW04_Projekt_Bsteh.Services
                 "Bäckermeister" =>
                     buildings.Any(b => b.Building.Name == "Bäckerei" && b.IsUnlocked),
 
-                "Erste 1000 Muenzen" =>
+                "Erste 1000 Münzen" =>
                     farm.Money >= 1000,
 
-                "Erste 10000 Muenzen" =>
+                "Erste 10000 Münzen" =>
                     farm.Money >= 10000,
 
                 "Vollständige Kette" =>
@@ -90,7 +85,6 @@ namespace SEW04_Projekt_Bsteh.Services
                         || b.CapacityLevel >= 5),
 
                 "Markthändler" =>
-                    // Braucht einen Tracker, kommt spaeter. Erstmal false.
                     false,
 
                 _ => false
