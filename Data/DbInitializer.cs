@@ -8,7 +8,6 @@ namespace SEW04_Projekt_Bsteh.Data
         {
             if (db.Resources.Any()) return;
 
-            // === RESSOURCEN ===
             var weizen = new Resource { Name = "Weizen", SellPrice = 1m, ChainOrder = 0 };
             var mehl = new Resource { Name = "Mehl", SellPrice = 4m, ChainOrder = 1 };
             var brot = new Resource { Name = "Brot", SellPrice = 15m, ChainOrder = 2 };
@@ -16,7 +15,6 @@ namespace SEW04_Projekt_Bsteh.Data
             db.Resources.AddRange(weizen, mehl, brot);
             db.SaveChanges();
 
-            // === GEBÄUDE ===
             var feld = new Building
             {
                 Name = "Feld",
@@ -53,7 +51,6 @@ namespace SEW04_Projekt_Bsteh.Data
             db.Buildings.AddRange(feld, muehle, baeckerei);
             db.SaveChanges();
 
-            // === ACHIEVEMENTS ===
             db.Achievements.AddRange(
                 new Achievement
                 {

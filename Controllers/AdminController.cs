@@ -122,80 +122,6 @@ namespace SEW04_Projekt_Bsteh.Controllers
             return View();
         }
 
-        // === ACCOUNT ERSTELLEN ===
-        [HttpGet]
-        public IActionResult CreateUser()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateUser(string displayName, string email, string password, string role)
-        {
-            if (string.IsNullOrEmpty(displayName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
-            {
-                TempData["Error"] = "Alle Felder müssen ausgefüllt sein!";
-                return View();
-            }
-
-            var user = new ApplicationUser
-            {
-                UserName = email,
-                Email = email,
-                DisplayName = displayName,
-                EmailConfirmed = true
-            };
-
-            var result = await _userManager.CreateAsync(user, password);
-
-            if (result.Succeeded)
-            {
-                if (role == "Admin" || role == "Spieler")
-                {
-                    await _userManager.AddToRoleAsync(user, role);
-                }
-                else
-                {
-                    await _userManager.AddToRoleAsync(user, "Spieler");
-                }
-
-                TempData["Success"] = $"{displayName} ({email}) als {role} erstellt!";
-                return RedirectToAction("Players");
-            }
-
-            foreach (var error in result.Errors)
-            {
-                TempData["Error"] = error.Description;
-            }
-
-            return View();
-        }
-
-        // === ROLLE ÄNDERN ===
-        [HttpPost]
-        public async Task<IActionResult> AjaxChangeRole([FromBody] ChangeRoleRequest request)
-        {
-            try
-            {
-                var user = await _userManager.FindByIdAsync(request.UserId);
-                if (user == null) return BadRequest("User nicht gefunden.");
-
-                if (user.Email == "admin@harvestdynasty.com")
-                    return BadRequest("Haupt-Admin kann nicht geändert werden!");
-
-                var currentRoles = await _userManager.GetRolesAsync(user);
-                await _userManager.RemoveFromRolesAsync(user, currentRoles);
-                await _userManager.AddToRoleAsync(user, request.NewRole);
-
-                return Json(new { success = true, message = $"{user.DisplayName} ist jetzt {request.NewRole}!" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Fehler: {ex.Message}");
-            }
-        }
-
         // === AJAX ENDPOINTS ===
 
         [HttpPost]
@@ -282,6 +208,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == userId);
                 if (farm == null) return BadRequest("Farm nicht gefunden.");
 
+                // Komplett-Reset: Alles auf Anfang
                 farm.Money = 100m;
                 farm.RebirthMultiplier = 1.0;
                 farm.RebirthCount = 0;
@@ -327,7 +254,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 _db.UserAchievements.RemoveRange(achievements);
 
                 await _db.SaveChangesAsync();
-                return Json(new { success = true, message = "Spieler komplett zurückgesetzt!" });
+                return Json(new { success = true, message = "Spieler komplett Zurückgesetzt!" });
             }
             catch (Exception ex)
             {
@@ -335,7 +262,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
             }
         }
 
-        // Spieler löschen
+        // Spieler Löschen
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePlayer(string userId)
@@ -345,7 +272,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
 
             if (user.Email == "admin@harvestdynasty.com")
             {
-                TempData["Error"] = "Admin-Account kann nicht gelöscht werden!";
+                TempData["Error"] = "Admin-Account kann nicht geloescht werden!";
                 return RedirectToAction("Players");
             }
 
@@ -366,7 +293,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
 
             await _userManager.DeleteAsync(user);
 
-            TempData["Success"] = $"{user.DisplayName} ({user.Email}) gelöscht!";
+            TempData["Success"] = $"{user.DisplayName} ({user.Email}) geloescht!";
             return RedirectToAction("Players");
         }
 
@@ -398,7 +325,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
             }
         }
 
-        // === GEBÄUDE VERWALTEN ===
+        // === Gebäude VERWALTEN ===
         public async Task<IActionResult> Buildings()
         {
             var buildings = await _db.Buildings
@@ -535,11 +462,5 @@ namespace SEW04_Projekt_Bsteh.Controllers
         public string BonusType { get; set; } = string.Empty;
         public double BonusValue { get; set; }
         public string BonusDescription { get; set; } = string.Empty;
-    }
-
-    public class ChangeRoleRequest
-    {
-        public string UserId { get; set; } = string.Empty;
-        public string NewRole { get; set; } = string.Empty;
     }
 }

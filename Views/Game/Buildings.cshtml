@@ -14,10 +14,24 @@
     <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
 
     <div class="row">
-        @if (userBuildings != null)
+        @if (userBuildings != null && farm != null)
         {
-            @foreach (var ub in userBuildings)
+            foreach (var ub in userBuildings)
             {
+                var discount = farm.AchievementUpgradeDiscount;
+
+                var prodCostRaw = (double)ub.Building.BaseCost * (ub.ProductionLevel + 1) * 0.75;
+                if (prodCostRaw < 100) prodCostRaw = 100.0 * (ub.ProductionLevel + 1);
+                var prodCost = prodCostRaw * (1 - discount);
+
+                var effCostRaw = (double)ub.Building.BaseCost * (ub.EfficiencyLevel + 1) * 0.75;
+                if (effCostRaw < 100) effCostRaw = 100.0 * (ub.EfficiencyLevel + 1);
+                var effCost = effCostRaw * (1 - discount);
+
+                var capCostRaw = (double)ub.Building.BaseCost * (ub.CapacityLevel + 1) * 0.75;
+                if (capCostRaw < 100) capCostRaw = 100.0 * (ub.CapacityLevel + 1);
+                var capCost = capCostRaw * (1 - discount);
+
                 <div class="col-md-4" id="building-card-@(ub.BuildingId)">
                     <div class="card mb-3 @(ub.IsUnlocked ? "" : "opacity-50")">
                         <div class="card-header">
@@ -33,36 +47,40 @@
                             <p>Output: @(ub.Building.OutputResource.Name)</p>
                             <p>Basisproduktion: @(ub.Building.BaseProductionRate)/s</p>
 
-                            <div id="building-status-@(ub.BuildingId)">
-                                @if (ub.IsUnlocked)
-                                {
-                                    <hr />
-                                    <button class="btn btn-outline-primary btn-sm w-100 mb-1"
-                                            onclick="upgradeBuilding(@(ub.BuildingId), 'production')">
-                                        Produktion Lv. <span id="prod-lvl-@(ub.BuildingId)">@(ub.ProductionLevel)</span>
-                                        → <span id="prod-next-@(ub.BuildingId)">@(ub.ProductionLevel + 1)</span>
-                                    </button>
+                            @if (ub.IsUnlocked)
+                            {
+                                <hr />
+                                <button class="btn btn-outline-primary btn-sm w-100 mb-1"
+                                        onclick="upgradeBuilding(@(ub.BuildingId), 'production')">
+                                    Produktion Lv. <span id="prod-lvl-@(ub.BuildingId)">@(ub.ProductionLevel)</span>
+                                    → <span id="prod-next-@(ub.BuildingId)">@(ub.ProductionLevel + 1)</span>
+                                    <span class="text-muted">(+10%)</span>
+                                    <br /><small>Kosten: @(prodCost.ToString("F0"))</small>
+                                </button>
 
-                                    <button class="btn btn-outline-info btn-sm w-100 mb-1"
-                                            onclick="upgradeBuilding(@(ub.BuildingId), 'efficiency')">
-                                        Effizienz Lv. <span id="eff-lvl-@(ub.BuildingId)">@(ub.EfficiencyLevel)</span>
-                                        → <span id="eff-next-@(ub.BuildingId)">@(ub.EfficiencyLevel + 1)</span>
-                                    </button>
+                                <button class="btn btn-outline-info btn-sm w-100 mb-1"
+                                        onclick="upgradeBuilding(@(ub.BuildingId), 'efficiency')">
+                                    Effizienz Lv. <span id="eff-lvl-@(ub.BuildingId)">@(ub.EfficiencyLevel)</span>
+                                    → <span id="eff-next-@(ub.BuildingId)">@(ub.EfficiencyLevel + 1)</span>
+                                    <span class="text-muted">(-8% Input)</span>
+                                    <br /><small>Kosten: @(effCost.ToString("F0"))</small>
+                                </button>
 
-                                    <button class="btn btn-outline-warning btn-sm w-100 mb-1"
-                                            onclick="upgradeBuilding(@(ub.BuildingId), 'capacity')">
-                                        Kapazität Lv. <span id="cap-lvl-@(ub.BuildingId)">@(ub.CapacityLevel)</span>
-                                        → <span id="cap-next-@(ub.BuildingId)">@(ub.CapacityLevel + 1)</span>
-                                    </button>
-                                }
-                                else
-                                {
-                                    <hr />
-                                    <button class="btn btn-primary w-100" onclick="buyBuilding(@(ub.BuildingId))">
-                                        Kaufen - @(ub.Building.BaseCost) Muenzen
-                                    </button>
-                                }
-                            </div>
+                                <button class="btn btn-outline-warning btn-sm w-100 mb-1"
+                                        onclick="upgradeBuilding(@(ub.BuildingId), 'capacity')">
+                                    Kapazität Lv. <span id="cap-lvl-@(ub.BuildingId)">@(ub.CapacityLevel)</span>
+                                    → <span id="cap-next-@(ub.BuildingId)">@(ub.CapacityLevel + 1)</span>
+                                    <span class="text-muted">(+20% Lager)</span>
+                                    <br /><small>Kosten: @(capCost.ToString("F0"))</small>
+                                </button>
+                            }
+                            else
+                            {
+                                <hr />
+                                <button class="btn btn-primary w-100" onclick="buyBuilding(@(ub.BuildingId))">
+                                    Kaufen - @(ub.Building.BaseCost) Münzen
+                                </button>
+                            }
                         </div>
                     </div>
                 </div>
@@ -119,21 +137,7 @@
                 if (response.ok) {
                     var data = await response.json();
                     showToast(data.message, 'success');
-                    await refreshState();
-
-                    if (upgradeType === 'production') {
-                        var lvl = document.getElementById('prod-lvl-' + buildingId);
-                        var next = document.getElementById('prod-next-' + buildingId);
-                        if (lvl && next) { var c = parseInt(lvl.innerText) + 1; lvl.innerText = c; next.innerText = c + 1; }
-                    } else if (upgradeType === 'efficiency') {
-                        var lvl = document.getElementById('eff-lvl-' + buildingId);
-                        var next = document.getElementById('eff-next-' + buildingId);
-                        if (lvl && next) { var c = parseInt(lvl.innerText) + 1; lvl.innerText = c; next.innerText = c + 1; }
-                    } else if (upgradeType === 'capacity') {
-                        var lvl = document.getElementById('cap-lvl-' + buildingId);
-                        var next = document.getElementById('cap-next-' + buildingId);
-                        if (lvl && next) { var c = parseInt(lvl.innerText) + 1; lvl.innerText = c; next.innerText = c + 1; }
-                    }
+                    setTimeout(function () { location.reload(); }, 500);
                 } else {
                     var error = await response.text();
                     showToast(error, 'danger');

@@ -25,7 +25,6 @@ namespace SEW04_Projekt_Bsteh.Services
 
                 if (secondsPassed < 1) return;
 
-                // Max 24h Offline-Progress
                 secondsPassed = Math.Min(secondsPassed, 86400);
 
                 var userBuildings = await _db.UserBuildings
@@ -42,7 +41,6 @@ namespace SEW04_Projekt_Bsteh.Services
                     .Where(ra => ra.FarmId == farmId)
                     .ToListAsync();
 
-                // Sortierung: Feld zuerst, dann Mühle, dann Bäckerei
                 var sortedBuildings = userBuildings
                     .OrderBy(ub => ub.Building.InputResourceId == null ? 0 : 1)
                     .ThenBy(ub => ub.Building.OutputResourceId)
@@ -52,13 +50,11 @@ namespace SEW04_Projekt_Bsteh.Services
                 {
                     var building = ub.Building;
 
-                    // Produktionsrate: +10% pro Level
                     var rate = building.BaseProductionRate;
                     rate *= (1 + ub.ProductionLevel * 0.10);
                     rate *= farm.RebirthMultiplier;
                     rate *= (1 + farm.AchievementProductionBonus);
 
-                    // Effizienz: -8% Input pro Level
                     var efficiency = 1.0 / (1 + ub.EfficiencyLevel * 0.08);
 
                     var maxProduction = rate * secondsPassed;
@@ -104,7 +100,6 @@ namespace SEW04_Projekt_Bsteh.Services
 
                     if (outputResource != null)
                     {
-                        // Kapazität: +20% pro Level
                         var effectiveMaxStorage = outputResource.MaxStorage
                             * (1 + ub.CapacityLevel * 0.20)
                             * (1 + farm.AchievementStorageBonus);
@@ -112,7 +107,6 @@ namespace SEW04_Projekt_Bsteh.Services
                     }
                 }
 
-                // Verkauf
                 decimal totalIncome = 0m;
 
                 foreach (var ur in userResources)
