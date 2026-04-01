@@ -19,19 +19,14 @@ namespace SEW04_Projekt_Bsteh.Controllers
             _userManager = userManager;
         }
 
-        // Admin Dashboard
         public async Task<IActionResult> Index()
         {
             ViewBag.UserCount = await _userManager.Users.CountAsync();
             ViewBag.FarmCount = await _db.Farms.CountAsync();
-            ViewBag.ResourceCount = await _db.Resources.CountAsync();
-            ViewBag.BuildingCount = await _db.Buildings.CountAsync();
-            ViewBag.AchievementCount = await _db.Achievements.CountAsync();
 
             return View();
         }
 
-        // === SPIELER VERWALTEN ===
         public async Task<IActionResult> Players(string? search, string? role, string? sortBy)
         {
             var users = await _userManager.Users.ToListAsync();
@@ -57,7 +52,6 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 });
             }
 
-            // Suche
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
@@ -66,13 +60,11 @@ namespace SEW04_Projekt_Bsteh.Controllers
                     p.DisplayName.ToLower().Contains(search)).ToList();
             }
 
-            // Rollenfilter
             if (!string.IsNullOrEmpty(role) && role != "all")
             {
                 playerData = playerData.Where(p => p.Role == role).ToList();
             }
 
-            // Sortierung
             playerData = sortBy switch
             {
                 "money_desc" => playerData.OrderByDescending(p => p.Money).ToList(),
@@ -90,7 +82,6 @@ namespace SEW04_Projekt_Bsteh.Controllers
             return View(playerData);
         }
 
-        // Spieler bearbeiten
         public async Task<IActionResult> EditPlayer(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -122,7 +113,73 @@ namespace SEW04_Projekt_Bsteh.Controllers
             return View();
         }
 
-        // === AJAX ENDPOINTS ===
+        [HttpGet]
+        public IActionResult CreateUser()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUser(string displayName, string email, string password, string role)
+        {
+            if (string.IsNullOrEmpty(displayName) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            {
+                TempData["Error"] = "Alle Felder müssen ausgefüllt sein!";
+                return View();
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                DisplayName = displayName,
+                EmailConfirmed = true
+            };
+
+            var result = await _userManager.CreateAsync(user, password);
+
+            if (result.Succeeded)
+            {
+                if (role == "Admin" || role == "Spieler")
+                    await _userManager.AddToRoleAsync(user, role);
+                else
+                    await _userManager.AddToRoleAsync(user, "Spieler");
+
+                TempData["Success"] = $"{displayName} ({email}) als {role} erstellt!";
+                return RedirectToAction("Players");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                TempData["Error"] = error.Description;
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AjaxChangeRole([FromBody] ChangeRoleRequest request)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(request.UserId);
+                if (user == null) return BadRequest("User nicht gefunden.");
+
+                if (user.Email == "admin@harvestdynasty.com")
+                    return BadRequest("Haupt-Admin kann nicht geändert werden!");
+
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                await _userManager.AddToRoleAsync(user, request.NewRole);
+
+                return Json(new { success = true, message = $"{user.DisplayName} ist jetzt {request.NewRole}!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Fehler: {ex.Message}");
+            }
+        }
 
         [HttpPost]
         public async Task<IActionResult> AjaxUpdatePlayer([FromBody] UpdatePlayerRequest request)
@@ -208,7 +265,6 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 var farm = await _db.Farms.FirstOrDefaultAsync(f => f.UserId == userId);
                 if (farm == null) return BadRequest("Farm nicht gefunden.");
 
-                // Komplett-Reset: Alles auf Anfang
                 farm.Money = 100m;
                 farm.RebirthMultiplier = 1.0;
                 farm.RebirthCount = 0;
@@ -217,6 +273,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 farm.AchievementSellBonus = 0;
                 farm.AchievementUpgradeDiscount = 0;
                 farm.AchievementStorageBonus = 0;
+                farm.ManualSellTotal = 0;
                 farm.LastCalculated = DateTime.UtcNow;
 
                 var userBuildings = await _db.UserBuildings
@@ -254,7 +311,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
                 _db.UserAchievements.RemoveRange(achievements);
 
                 await _db.SaveChangesAsync();
-                return Json(new { success = true, message = "Spieler komplett Zurückgesetzt!" });
+                return Json(new { success = true, message = "Spieler komplett zurückgesetzt!" });
             }
             catch (Exception ex)
             {
@@ -262,7 +319,6 @@ namespace SEW04_Projekt_Bsteh.Controllers
             }
         }
 
-        // Spieler Löschen
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePlayer(string userId)
@@ -272,7 +328,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
 
             if (user.Email == "admin@harvestdynasty.com")
             {
-                TempData["Error"] = "Admin-Account kann nicht geloescht werden!";
+                TempData["Error"] = "Admin-Account kann nicht gelöscht werden!";
                 return RedirectToAction("Players");
             }
 
@@ -293,99 +349,8 @@ namespace SEW04_Projekt_Bsteh.Controllers
 
             await _userManager.DeleteAsync(user);
 
-            TempData["Success"] = $"{user.DisplayName} ({user.Email}) geloescht!";
+            TempData["Success"] = $"{user.DisplayName} ({user.Email}) gelöscht!";
             return RedirectToAction("Players");
-        }
-
-        // === RESSOURCEN VERWALTEN ===
-        public async Task<IActionResult> Resources()
-        {
-            var resources = await _db.Resources.OrderBy(r => r.ChainOrder).ToListAsync();
-            return View(resources);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AjaxEditResource([FromBody] EditResourceRequest request)
-        {
-            try
-            {
-                var resource = await _db.Resources.FindAsync(request.Id);
-                if (resource == null) return BadRequest("Ressource nicht gefunden.");
-
-                resource.Name = request.Name;
-                resource.SellPrice = request.SellPrice;
-                resource.ChainOrder = request.ChainOrder;
-
-                await _db.SaveChangesAsync();
-                return Json(new { success = true, message = $"{request.Name} aktualisiert!" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Fehler: {ex.Message}");
-            }
-        }
-
-        // === Gebäude VERWALTEN ===
-        public async Task<IActionResult> Buildings()
-        {
-            var buildings = await _db.Buildings
-                .Include(b => b.InputResource)
-                .Include(b => b.OutputResource)
-                .ToListAsync();
-            return View(buildings);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AjaxEditBuilding([FromBody] EditBuildingRequest request)
-        {
-            try
-            {
-                var building = await _db.Buildings.FindAsync(request.Id);
-                if (building == null) return BadRequest("Gebäude nicht gefunden.");
-
-                building.Name = request.Name;
-                building.Description = request.Description;
-                building.BaseCost = request.BaseCost;
-                building.BaseProductionRate = request.BaseProductionRate;
-                building.InputPerOutput = request.InputPerOutput;
-
-                await _db.SaveChangesAsync();
-                return Json(new { success = true, message = $"{request.Name} aktualisiert!" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Fehler: {ex.Message}");
-            }
-        }
-
-        // === ACHIEVEMENTS VERWALTEN ===
-        public async Task<IActionResult> Achievements()
-        {
-            var achievements = await _db.Achievements.ToListAsync();
-            return View(achievements);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AjaxEditAchievement([FromBody] EditAchievementRequest request)
-        {
-            try
-            {
-                var achievement = await _db.Achievements.FindAsync(request.Id);
-                if (achievement == null) return BadRequest("Achievement nicht gefunden.");
-
-                achievement.Name = request.Name;
-                achievement.Description = request.Description;
-                achievement.BonusType = request.BonusType;
-                achievement.BonusValue = request.BonusValue;
-                achievement.BonusDescription = request.BonusDescription;
-
-                await _db.SaveChangesAsync();
-                return Json(new { success = true, message = $"{request.Name} aktualisiert!" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Fehler: {ex.Message}");
-            }
         }
     }
 
@@ -436,31 +401,9 @@ namespace SEW04_Projekt_Bsteh.Controllers
         public double MaxStorage { get; set; }
     }
 
-    public class EditResourceRequest
+    public class ChangeRoleRequest
     {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public decimal SellPrice { get; set; }
-        public int ChainOrder { get; set; }
-    }
-
-    public class EditBuildingRequest
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public decimal BaseCost { get; set; }
-        public double BaseProductionRate { get; set; }
-        public double InputPerOutput { get; set; }
-    }
-
-    public class EditAchievementRequest
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string BonusType { get; set; } = string.Empty;
-        public double BonusValue { get; set; }
-        public string BonusDescription { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
+        public string NewRole { get; set; } = string.Empty;
     }
 }

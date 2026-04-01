@@ -9,7 +9,6 @@
 <div class="container mt-4">
     <h1>HarvestDynasty - Dashboard</h1>
 
-    <!-- Toast Container -->
     <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
 
     <!-- Finanzen -->
@@ -42,7 +41,7 @@
 
     <!-- Ressourcen -->
     <h4>Ressourcen</h4>
-    <div class="row mb-4" id="resourcesContainer">
+    <div class="row mb-4">
         @if (userResources != null)
         {
             @foreach (var ur in userResources)
@@ -54,7 +53,7 @@
                             <div class="progress">
                                 <div class="progress-bar" id="bar-@(ur.ResourceId)"
                                      style="width: @((ur.Amount / ur.MaxStorage * 100).ToString("F0"))%">
-                                    <span id="res-@(ur.ResourceId)">@(ur.Amount.ToString("F1")) / @(ur.MaxStorage)</span>
+                                    <span id="res-@(ur.ResourceId)">@(ur.Amount.ToString("F1")) / @(ur.MaxStorage.ToString("F0"))</span>
                                 </div>
                             </div>
                         </div>
@@ -66,7 +65,7 @@
 
     <!-- Gebäude -->
     <h4>Gebäude</h4>
-    <div class="row mb-4" id="buildingsContainer">
+    <div class="row mb-4">
         @if (userBuildings != null)
         {
             @foreach (var ub in userBuildings)
@@ -89,31 +88,10 @@
             }
         }
     </div>
-
-    <!-- Navigation -->
-    <h4>Aktionen</h4>
-    <div class="row">
-        <div class="col-md-2">
-            <a asp-action="Buildings" class="btn btn-primary w-100 mb-2">Gebäude</a>
-        </div>
-        <div class="col-md-2">
-            <a asp-action="Resources" class="btn btn-success w-100 mb-2">Ressourcen</a>
-        </div>
-        <div class="col-md-2">
-            <a asp-action="Market" class="btn btn-warning w-100 mb-2">Marktplatz</a>
-        </div>
-        <div class="col-md-2">
-            <a asp-action="Achievements" class="btn btn-info w-100 mb-2">Achievements</a>
-        </div>
-        <div class="col-md-2">
-            <a asp-action="Profile" class="btn btn-secondary w-100 mb-2">Profil</a>
-        </div>
-    </div>
 </div>
 
 @section Scripts {
     <script>
-        // Bekannte Achievement-IDs um neue zu erkennen
         let knownAchievements = [];
         let firstLoad = true;
 
@@ -128,10 +106,7 @@
                     '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
                 '</div>';
             container.appendChild(toast);
-
-            setTimeout(function () {
-                toast.remove();
-            }, 4000);
+            setTimeout(function () { toast.remove(); }, 4000);
         }
 
         async function updateGameState() {
@@ -141,23 +116,20 @@
 
                 var data = await response.json();
 
-                // Geld aktualisieren
                 document.getElementById('money').innerText = data.money.toFixed(2);
                 document.getElementById('multiplier').innerText = 'x' + data.rebirthMultiplier.toFixed(1);
                 document.getElementById('rebirths').innerText = data.rebirthCount;
 
-                // Ressourcen aktualisieren
                 data.resources.forEach(function (res) {
                     var bar = document.getElementById('bar-' + res.id);
                     var text = document.getElementById('res-' + res.id);
                     if (bar && text) {
                         var percent = (res.amount / res.maxStorage * 100).toFixed(0);
                         bar.style.width = percent + '%';
-                        text.innerText = res.amount.toFixed(1) + ' / ' + res.maxStorage;
+                        text.innerText = res.amount.toFixed(1) + ' / ' + res.maxStorage.toFixed(0);
                     }
                 });
 
-                // Gebäude Status aktualisieren
                 data.buildings.forEach(function (b) {
                     var card = document.getElementById('building-' + b.id);
                     if (card) {
@@ -174,7 +146,6 @@
                     }
                 });
 
-                // Neue Achievements erkennen und Toast anzeigen
                 if (firstLoad) {
                     knownAchievements = data.achievements;
                     firstLoad = false;
@@ -192,10 +163,7 @@
             }
         }
 
-        // 2x pro Sekunde aktualisieren
         setInterval(updateGameState, 500);
-
-        // Sofort beim Laden einmal ausfuehren
         updateGameState();
     </script>
 }

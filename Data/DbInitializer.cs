@@ -8,6 +8,7 @@ namespace SEW04_Projekt_Bsteh.Data
         {
             if (db.Resources.Any()) return;
 
+            // === RESSOURCEN ===
             var weizen = new Resource { Name = "Weizen", SellPrice = 1m, ChainOrder = 0 };
             var mehl = new Resource { Name = "Mehl", SellPrice = 4m, ChainOrder = 1 };
             var brot = new Resource { Name = "Brot", SellPrice = 15m, ChainOrder = 2 };
@@ -15,6 +16,7 @@ namespace SEW04_Projekt_Bsteh.Data
             db.Resources.AddRange(weizen, mehl, brot);
             db.SaveChanges();
 
+            // === GEBÄUDE ===
             var feld = new Building
             {
                 Name = "Feld",
@@ -51,6 +53,7 @@ namespace SEW04_Projekt_Bsteh.Data
             db.Buildings.AddRange(feld, muehle, baeckerei);
             db.SaveChanges();
 
+            // === ACHIEVEMENTS ===
             db.Achievements.AddRange(
                 new Achievement
                 {
@@ -64,22 +67,14 @@ namespace SEW04_Projekt_Bsteh.Data
                 {
                     Name = "Bäckermeister",
                     Description = "Kaufe die Bäckerei.",
-                    BonusType = "StorageBoost",
-                    BonusValue = 0.5,
-                    BonusDescription = "Lagerkapazität aller Ressourcen +50%"
-                },
-                new Achievement
-                {
-                    Name = "Erste 1000 Münzen",
-                    Description = "Erreiche 1000 Münzen.",
                     BonusType = "ProductionBoost",
-                    BonusValue = 0.1,
-                    BonusDescription = "Produktionsrate aller Gebäude +10%"
+                    BonusValue = 0.15,
+                    BonusDescription = "Produktionsrate aller Gebäude +15%"
                 },
                 new Achievement
                 {
                     Name = "Vollständige Kette",
-                    Description = "Schalte alle 3 Gebäude frei.",
+                    Description = "Bringe ein Upgrade auf Level 3.",
                     BonusType = "UpgradeDiscount",
                     BonusValue = 0.15,
                     BonusDescription = "Upgrade-Kosten -15%"
@@ -90,23 +85,15 @@ namespace SEW04_Projekt_Bsteh.Data
                     Description = "Fülle ein Lager komplett.",
                     BonusType = "StorageBoost",
                     BonusValue = 1.0,
-                    BonusDescription = "Lagerkapazität aller Ressourcen nochmal +100%"
-                },
-                new Achievement
-                {
-                    Name = "Erste 10000 Münzen",
-                    Description = "Erreiche 10000 Münzen.",
-                    BonusType = "SellBoost",
-                    BonusValue = 0.2,
-                    BonusDescription = "Verkaufspreise +20%"
+                    BonusDescription = "Lagerkapazität aller Ressourcen +100%"
                 },
                 new Achievement
                 {
                     Name = "Upgrade-Anfänger",
                     Description = "Bringe ein Upgrade auf Level 5.",
-                    BonusType = "ProductionBoost",
-                    BonusValue = 0.15,
-                    BonusDescription = "Produktionsrate aller Gebäude +15%"
+                    BonusType = "StorageBoost",
+                    BonusValue = 0.5,
+                    BonusDescription = "Lagerkapazität aller Ressourcen +50%"
                 },
                 new Achievement
                 {
@@ -115,6 +102,22 @@ namespace SEW04_Projekt_Bsteh.Data
                     BonusType = "SellBoost",
                     BonusValue = 0.1,
                     BonusDescription = "Verkaufspreise +10%"
+                },
+                new Achievement
+                {
+                    Name = "Erste 1000 Münzen",
+                    Description = "Habe 1000 Münzen am Konto.",
+                    BonusType = "ProductionBoost",
+                    BonusValue = 0.1,
+                    BonusDescription = "Produktionsrate aller Gebäude +10%"
+                },
+                new Achievement
+                {
+                    Name = "Sparfuchs",
+                    Description = "Habe 10000 Münzen am Konto.",
+                    BonusType = "SellBoost",
+                    BonusValue = 0.2,
+                    BonusDescription = "Verkaufspreise +20%"
                 }
             );
             db.SaveChanges();

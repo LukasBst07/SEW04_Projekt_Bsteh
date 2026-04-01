@@ -11,7 +11,7 @@ using SEW04_Projekt_Bsteh.Data;
 namespace SEW04_Projekt_Bsteh.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260322151014_InitialCreate")]
+    [Migration("20260401130604_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -321,6 +321,9 @@ namespace SEW04_Projekt_Bsteh.Migrations
 
                     b.Property<DateTime>("LastCalculated")
                         .HasColumnType("TEXT");
+
+                    b.Property<double>("ManualSellTotal")
+                        .HasColumnType("REAL");
 
                     b.Property<decimal>("Money")
                         .HasColumnType("TEXT");

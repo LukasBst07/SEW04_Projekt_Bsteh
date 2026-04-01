@@ -319,6 +319,9 @@ namespace SEW04_Projekt_Bsteh.Migrations
                     b.Property<DateTime>("LastCalculated")
                         .HasColumnType("TEXT");
 
+                    b.Property<double>("ManualSellTotal")
+                        .HasColumnType("REAL");
+
                     b.Property<decimal>("Money")
                         .HasColumnType("TEXT");
 

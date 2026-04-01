@@ -20,5 +20,8 @@ namespace SEW04_Projekt_Bsteh.Models
         public double AchievementSellBonus { get; set; } = 0;
         public double AchievementUpgradeDiscount { get; set; } = 0;
         public double AchievementStorageBonus { get; set; } = 0;
+
+        // Tracker: Manuell am Marktplatz verkaufte Einheiten
+        public double ManualSellTotal { get; set; } = 0;
     }
 }

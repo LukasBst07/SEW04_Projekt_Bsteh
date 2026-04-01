@@ -303,6 +303,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
             var income = (decimal)amount * price;
             userResource.Amount -= amount;
             farm.Money += income;
+            farm.ManualSellTotal += amount;
 
             await _db.SaveChangesAsync();
             await _achievements.CheckAchievements(farm.Id);
@@ -345,13 +346,14 @@ namespace SEW04_Projekt_Bsteh.Controllers
             var farm = await LoadFarmWithCalculation();
             if (farm == null) return RedirectToAction("Profile");
 
-            var unlockedCount = await _db.UserBuildings
-                .Where(ub => ub.FarmId == farm.Id && ub.IsUnlocked)
+            var totalAchievements = await _db.Achievements.CountAsync();
+            var unlockedAchievements = await _db.UserAchievements
+                .Where(ua => ua.FarmId == farm.Id)
                 .CountAsync();
 
-            if (unlockedCount < 3)
+            if (unlockedAchievements < totalAchievements)
             {
-                TempData["Error"] = "Du musst alle Gebäude freigeschaltet haben um Rebirth zu nutzen!";
+                TempData["Error"] = "Du musst alle Achievements freigeschaltet haben um Rebirth zu nutzen!";
                 return RedirectToAction("Profile");
             }
 
@@ -363,6 +365,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
             farm.AchievementSellBonus = 0;
             farm.AchievementUpgradeDiscount = 0;
             farm.AchievementStorageBonus = 0;
+            farm.ManualSellTotal = 0;
             farm.LastCalculated = DateTime.UtcNow;
 
             var userBuildings = await _db.UserBuildings
@@ -415,12 +418,13 @@ namespace SEW04_Projekt_Bsteh.Controllers
             var farm = await LoadFarmWithCalculation();
             if (farm == null) return Unauthorized();
 
-            var unlockedCount = await _db.UserBuildings
-                .Where(ub => ub.FarmId == farm.Id && ub.IsUnlocked)
+            var totalAchievements = await _db.Achievements.CountAsync();
+            var unlockedAchievements = await _db.UserAchievements
+                .Where(ua => ua.FarmId == farm.Id)
                 .CountAsync();
 
-            if (unlockedCount < 3)
-                return BadRequest("Du musst alle Gebäude freigeschaltet haben!");
+            if (unlockedAchievements < totalAchievements)
+                return BadRequest("Du musst alle Achievements freigeschaltet haben!");
 
             farm.RebirthMultiplier += 0.5;
             farm.RebirthCount++;
@@ -430,6 +434,7 @@ namespace SEW04_Projekt_Bsteh.Controllers
             farm.AchievementSellBonus = 0;
             farm.AchievementUpgradeDiscount = 0;
             farm.AchievementStorageBonus = 0;
+            farm.ManualSellTotal = 0;
             farm.LastCalculated = DateTime.UtcNow;
 
             var userBuildings = await _db.UserBuildings
@@ -660,11 +665,40 @@ namespace SEW04_Projekt_Bsteh.Controllers
             var income = (decimal)amount * price;
             userResource.Amount -= amount;
             farm.Money += income;
+            farm.ManualSellTotal += amount;
 
             await _db.SaveChangesAsync();
             await _achievements.CheckAchievements(farm.Id);
 
             return Json(new { success = true, message = $"{amount:F1} {userResource.Resource.Name} für {income:F2} verkauft!" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AjaxQuickSell([FromBody] SellRequest request)
+        {
+            var farm = await LoadFarmWithCalculation();
+            if (farm == null) return Unauthorized();
+
+            var userResource = await _db.UserResources
+                .Include(ur => ur.Resource)
+                .FirstOrDefaultAsync(ur => ur.FarmId == farm.Id && ur.ResourceId == request.ResourceId);
+
+            if (userResource == null) return BadRequest("Ressource nicht gefunden.");
+
+            var amount = Math.Min(request.Amount, userResource.Amount);
+            if (amount <= 0) return BadRequest("Nichts zu verkaufen!");
+
+            // Quicksell: 80% vom normalen Preis
+            var price = userResource.Resource.SellPrice * 0.8m * (1 + (decimal)farm.AchievementSellBonus);
+            var income = (decimal)amount * price;
+            userResource.Amount -= amount;
+            farm.Money += income;
+            farm.ManualSellTotal += amount;
+
+            await _db.SaveChangesAsync();
+            await _achievements.CheckAchievements(farm.Id);
+
+            return Json(new { success = true, message = $"Quicksell: {amount:F1} {userResource.Resource.Name} für {income:F2} (80%)" });
         }
 
         // ==================== FARM ERSTELLEN ====================

@@ -31,6 +31,7 @@
                 var alloc = allocations.FirstOrDefault(a => a.ResourceId == ur.ResourceId);
                 var sellPct = alloc?.SellPercentage ?? 100;
                 var isLastInChain = ur.Resource.ChainOrder == maxChainOrder;
+                var storagePct = (int)(ur.Amount / ur.MaxStorage * 100);
 
                 <div class="col-md-4">
                     <div class="card mb-3">
@@ -38,11 +39,11 @@
                             <h5 class="mb-0">@(ur.Resource.Name)</h5>
                         </div>
                         <div class="card-body">
-                            <p>Menge: <strong id="amount-@(ur.ResourceId)">@(ur.Amount.ToString("F1"))</strong> / <span id="max-@(ur.ResourceId)">@(ur.MaxStorage)</span></p>
+                            <p>Lager: <strong id="amount-@(ur.ResourceId)">@(storagePct)%</strong> (<span id="raw-@(ur.ResourceId)">@((int)ur.Amount)</span> / <span id="max-@(ur.ResourceId)">@((int)ur.MaxStorage)</span>)</p>
                             <div class="progress mb-3">
                                 <div class="progress-bar" id="bar-@(ur.ResourceId)"
-                                     style="width: @((ur.Amount / ur.MaxStorage * 100).ToString("F0"))%">
-                                    <span id="percent-@(ur.ResourceId)">@((ur.Amount / ur.MaxStorage * 100).ToString("F0"))%</span>
+                                     style="width: @(storagePct)%">
+                                    <span id="percent-@(ur.ResourceId)">@(storagePct)%</span>
                                 </div>
                             </div>
 
@@ -130,18 +131,19 @@
                 document.getElementById('moneyDisplay').innerText = 'Geld: ' + data.money.toFixed(2);
 
                 data.resources.forEach(function (res) {
-                    var amount = document.getElementById('amount-' + res.id);
-                    var max = document.getElementById('max-' + res.id);
+                    var amountEl = document.getElementById('amount-' + res.id);
+                    var rawEl = document.getElementById('raw-' + res.id);
+                    var maxEl = document.getElementById('max-' + res.id);
                     var bar = document.getElementById('bar-' + res.id);
                     var percent = document.getElementById('percent-' + res.id);
 
-                    if (amount) amount.innerText = res.amount.toFixed(1);
-                    if (max) max.innerText = res.maxStorage;
-                    if (bar) {
-                        var pct = (res.amount / res.maxStorage * 100).toFixed(0);
-                        bar.style.width = pct + '%';
-                        if (percent) percent.innerText = pct + '%';
-                    }
+                    var pct = Math.round(res.amount / res.maxStorage * 100);
+
+                    if (amountEl) amountEl.innerText = pct + '%';
+                    if (rawEl) rawEl.innerText = Math.floor(res.amount);
+                    if (maxEl) maxEl.innerText = Math.floor(res.maxStorage);
+                    if (bar) bar.style.width = pct + '%';
+                    if (percent) percent.innerText = pct + '%';
                 });
             } catch (e) { }
         }

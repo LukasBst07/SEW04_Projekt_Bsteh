@@ -19,6 +19,7 @@
             foreach (var ub in userBuildings)
             {
                 var discount = farm.AchievementUpgradeDiscount;
+                var hasInput = ub.Building.InputResourceId != null;
 
                 var prodCostRaw = (double)ub.Building.BaseCost * (ub.ProductionLevel + 1) * 0.75;
                 if (prodCostRaw < 100) prodCostRaw = 100.0 * (ub.ProductionLevel + 1);
@@ -32,6 +33,30 @@
                 if (capCostRaw < 100) capCostRaw = 100.0 * (ub.CapacityLevel + 1);
                 var capCost = capCostRaw * (1 - discount);
 
+                // Fancy Namen je nach Gebäude
+                var prodName = ub.Building.Name switch
+                {
+                    "Feld" => "Dünger",
+                    "Mühle" => "Mahlwerk",
+                    "Bäckerei" => "Backofen",
+                    _ => "Produktion"
+                };
+
+                var effName = ub.Building.Name switch
+                {
+                    "Mühle" => "Transportgeschwindigkeit",
+                    "Bäckerei" => "Meisterbäcker",
+                    _ => "Effizienz"
+                };
+
+                var capName = ub.Building.Name switch
+                {
+                    "Feld" => "Scheunengröße",
+                    "Mühle" => "Mehlsilo",
+                    "Bäckerei" => "Brotregal",
+                    _ => "Kapazität"
+                };
+
                 <div class="col-md-4" id="building-card-@(ub.BuildingId)">
                     <div class="card mb-3 @(ub.IsUnlocked ? "" : "opacity-50")">
                         <div class="card-header">
@@ -40,7 +65,7 @@
                         <div class="card-body">
                             <p>@(ub.Building.Description)</p>
 
-                            @if (ub.Building.InputResource != null)
+                            @if (hasInput)
                             {
                                 <p>Input: @(ub.Building.InputResource.Name) (@(ub.Building.InputPerOutput):1)</p>
                             }
@@ -52,24 +77,27 @@
                                 <hr />
                                 <button class="btn btn-outline-primary btn-sm w-100 mb-1"
                                         onclick="upgradeBuilding(@(ub.BuildingId), 'production')">
-                                    Produktion Lv. <span id="prod-lvl-@(ub.BuildingId)">@(ub.ProductionLevel)</span>
-                                    → <span id="prod-next-@(ub.BuildingId)">@(ub.ProductionLevel + 1)</span>
+                                    @(prodName) Lv. @(ub.ProductionLevel)
+                                    → @(ub.ProductionLevel + 1)
                                     <span class="text-muted">(+10%)</span>
                                     <br /><small>Kosten: @(prodCost.ToString("F0"))</small>
                                 </button>
 
-                                <button class="btn btn-outline-info btn-sm w-100 mb-1"
-                                        onclick="upgradeBuilding(@(ub.BuildingId), 'efficiency')">
-                                    Effizienz Lv. <span id="eff-lvl-@(ub.BuildingId)">@(ub.EfficiencyLevel)</span>
-                                    → <span id="eff-next-@(ub.BuildingId)">@(ub.EfficiencyLevel + 1)</span>
-                                    <span class="text-muted">(-8% Input)</span>
-                                    <br /><small>Kosten: @(effCost.ToString("F0"))</small>
-                                </button>
+                                @if (hasInput)
+                                {
+                                    <button class="btn btn-outline-info btn-sm w-100 mb-1"
+                                            onclick="upgradeBuilding(@(ub.BuildingId), 'efficiency')">
+                                        @(effName) Lv. @(ub.EfficiencyLevel)
+                                        → @(ub.EfficiencyLevel + 1)
+                                        <span class="text-muted">(-8% Input)</span>
+                                        <br /><small>Kosten: @(effCost.ToString("F0"))</small>
+                                    </button>
+                                }
 
                                 <button class="btn btn-outline-warning btn-sm w-100 mb-1"
                                         onclick="upgradeBuilding(@(ub.BuildingId), 'capacity')">
-                                    Kapazität Lv. <span id="cap-lvl-@(ub.BuildingId)">@(ub.CapacityLevel)</span>
-                                    → <span id="cap-next-@(ub.BuildingId)">@(ub.CapacityLevel + 1)</span>
+                                    @(capName) Lv. @(ub.CapacityLevel)
+                                    → @(ub.CapacityLevel + 1)
                                     <span class="text-muted">(+20% Lager)</span>
                                     <br /><small>Kosten: @(capCost.ToString("F0"))</small>
                                 </button>

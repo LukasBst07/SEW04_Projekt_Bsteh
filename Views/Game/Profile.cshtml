@@ -6,7 +6,7 @@
     var achievementCount = ViewBag.AchievementCount as int? ?? 0;
     var totalAchievements = ViewBag.TotalAchievements as int? ?? 0;
     var userEmail = ViewBag.UserEmail as string;
-    var allUnlocked = userBuildings?.Count(ub => ub.IsUnlocked) >= 3;
+    var allAchievementsUnlocked = achievementCount >= totalAchievements;
 }
 
 <div class="container mt-4">
@@ -24,7 +24,6 @@
     }
 
     <div class="row">
-        <!-- Spieler Info -->
         <div class="col-md-6">
             <div class="card mb-3">
                 <div class="card-header">
@@ -32,12 +31,11 @@
                 </div>
                 <div class="card-body">
                     <p>E-Mail: <strong>@(userEmail)</strong></p>
-                    <p>Geld: <strong id="moneyDisplay">@(farm?.Money.ToString("F2"))</strong></p>
+                    <p>Geld: <strong id="profileMoney">@(farm?.Money.ToString("F2"))</strong></p>
                 </div>
             </div>
         </div>
 
-        <!-- Statistiken -->
         <div class="col-md-6">
             <div class="card mb-3">
                 <div class="card-header">
@@ -46,14 +44,13 @@
                 <div class="card-body">
                     <p>Gebäude freigeschaltet: <strong>@(userBuildings?.Count(ub => ub.IsUnlocked) ?? 0) / @(userBuildings?.Count ?? 0)</strong></p>
                     <p>Achievements: <strong>@(achievementCount) / @(totalAchievements)</strong></p>
-                    <p>Rebirths: <strong>@(farm?.RebirthCount)</strong></p>
-                    <p>Multiplikator: <strong>x@(farm?.RebirthMultiplier.ToString("F1"))</strong></p>
+                    <p>Rebirths: <strong id="profileRebirths">@(farm?.RebirthCount)</strong></p>
+                    <p>Multiplikator: <strong id="profileMulti">x@(farm?.RebirthMultiplier.ToString("F1"))</strong></p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Aktive Boni -->
     <div class="card mb-3">
         <div class="card-header">
             <h5 class="mb-0">Aktive Achievement-Boni</h5>
@@ -67,37 +64,67 @@
         </div>
     </div>
 
-    <!-- Rebirth -->
-    <div class="card mb-3 @(allUnlocked ? "border-warning" : "")">
+    <div class="card mb-3 @(allAchievementsUnlocked ? "border-warning" : "")">
         <div class="card-header">
             <h5 class="mb-0">Rebirth</h5>
         </div>
         <div class="card-body">
-            <p>Setze deine Farm Zurück und erhalte einen dauerhaften Multiplikator.</p>
+            <p>Setze deine Farm zurück und erhalte einen dauerhaften Multiplikator.</p>
             <p>Aktueller Multiplikator: <strong>x@(farm?.RebirthMultiplier.ToString("F1"))</strong></p>
-            <p>Nach Rebirth: <strong>x@((farm != null ? farm.RebirthMultiplier + 0.5 : 1.5).ToString("F1"))</strong></p>
+            <p>Nach Rebirth: <strong>x@((farm != null ? farm.RebirthMultiplier + 0.8 : 1.8).ToString("F1"))</strong></p>
 
             <div class="alert alert-warning mt-3">
-                <strong>Achtung:</strong> Rebirth setzt Zurück: Geld, Gebäude, Upgrades, Ressourcen, Achievements und alle Boni.
+                <strong>Achtung:</strong> Rebirth setzt zurück: Geld, Gebäude, Upgrades, Ressourcen, Achievements und alle Boni.
                 Nur der Multiplikator und die Rebirth-Anzahl bleiben.
             </div>
 
-            @if (allUnlocked)
+            @if (allAchievementsUnlocked)
             {
-                <button class="btn btn-warning w-100" id="rebirthBtn" onclick="confirmRebirth()">
-                    Rebirth durchfuehren
+                <button class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#rebirthModal">
+                    Rebirth durchführen
                 </button>
             }
             else
             {
                 <button class="btn btn-secondary w-100" disabled>
-                    Alle Gebäude freischalten um Rebirth zu nutzen
+                    Alle Achievements freischalten um Rebirth zu nutzen (@(achievementCount)/@(totalAchievements))
                 </button>
             }
         </div>
     </div>
 
     <a asp-action="Dashboard" class="btn btn-secondary mt-3">Zurück zum Dashboard</a>
+</div>
+
+<!-- Rebirth Modal -->
+<div class="modal fade" id="rebirthModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(90deg, #52b788, #40916c); color: white;">
+                <h5 class="modal-title">Rebirth bestätigen</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bist du sicher? <strong>Alles wird zurückgesetzt:</strong></p>
+                <ul>
+                    <li>Geld → 100</li>
+                    <li>Alle Gebäude gesperrt (außer Feld)</li>
+                    <li>Alle Upgrades auf Level 0</li>
+                    <li>Alle Ressourcen auf 0</li>
+                    <li>Alle Achievements verloren</li>
+                    <li>Alle Boni weg</li>
+                </ul>
+                <p><strong>Dafür bekommst du:</strong></p>
+                <ul>
+                    <li>Multiplikator +0.8 (permanent)</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-warning" onclick="doRebirth()">Ja, Rebirth!</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
@@ -116,14 +143,11 @@
             setTimeout(function () { toast.remove(); }, 4000);
         }
 
-        function confirmRebirth() {
-            if (confirm('Bist du sicher? Alles ausser Multiplikator wird Zurückgesetzt!')) {
-                doRebirth();
-            }
-        }
-
         async function doRebirth() {
             try {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('rebirthModal'));
+                modal.hide();
+
                 var response = await fetch('/Game/AjaxRebirth', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
@@ -141,5 +165,19 @@
                 showToast('Fehler beim Rebirth.', 'danger');
             }
         }
+
+        async function updateProfile() {
+            try {
+                var response = await fetch('/Game/GetGameState');
+                if (!response.ok) return;
+                var data = await response.json();
+
+                document.getElementById('profileMoney').innerText = data.money.toFixed(2);
+                document.getElementById('profileRebirths').innerText = data.rebirthCount;
+                document.getElementById('profileMulti').innerText = 'x' + data.rebirthMultiplier.toFixed(1);
+            } catch (e) { }
+        }
+
+        setInterval(updateProfile, 500);
     </script>
 }

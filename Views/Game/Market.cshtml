@@ -13,11 +13,17 @@
 
     <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
 
+    <div class="alert alert-info">
+        <strong>Hinweis:</strong> Am Marktplatz kannst du Ressourcen sofort verkaufen. Der Marktpreis beträgt 80% des regulären Preises.
+    </div>
+
     <div class="row">
         @if (userResources != null)
         {
             @foreach (var ur in userResources)
             {
+                var marketPrice = ur.Resource.SellPrice * 0.8m;
+
                 <div class="col-md-4">
                     <div class="card mb-3">
                         <div class="card-header">
@@ -25,18 +31,11 @@
                         </div>
                         <div class="card-body">
                             <p>Verfügbar: <strong id="available-@(ur.ResourceId)">@(ur.Amount.ToString("F1"))</strong></p>
-                            <p>Preis pro Stück: <strong>@(ur.Resource.SellPrice)</strong></p>
-                            <p>Gesamtwert: <strong id="value-@(ur.ResourceId)">@((ur.Amount * (double)ur.Resource.SellPrice).ToString("F2"))</strong></p>
+                            <p>Marktpreis: <strong>@(marketPrice.ToString(System.Globalization.CultureInfo.InvariantCulture))</strong> / Stück</p>
 
                             <hr />
-                            <div class="input-group mb-2">
-                                <input type="number" id="sell-amount-@(ur.ResourceId)" class="form-control"
-                                       step="0.1" min="0" max="@(ur.Amount)" placeholder="Menge" />
-                                <button class="btn btn-warning" onclick="sellResource(@(ur.ResourceId), false)">Verkaufen</button>
-                            </div>
-
-                            <button class="btn btn-outline-warning btn-sm w-100"
-                                    onclick="sellResource(@(ur.ResourceId), true)">
+                            <button class="btn btn-warning w-100"
+                                    onclick="verkaufen(@(ur.ResourceId))">
                                 Alles verkaufen
                             </button>
                         </div>
@@ -65,21 +64,15 @@
             setTimeout(function () { toast.remove(); }, 4000);
         }
 
-        async function sellResource(resourceId, sellAll) {
-            var amount = 0;
-            if (sellAll) {
-                amount = parseFloat(document.getElementById('available-' + resourceId).innerText);
-            } else {
-                amount = parseFloat(document.getElementById('sell-amount-' + resourceId).value);
-            }
-
+        async function verkaufen(resourceId) {
+            var amount = parseFloat(document.getElementById('available-' + resourceId).innerText);
             if (!amount || amount <= 0) {
-                showToast('Bitte Menge eingeben!', 'danger');
+                showToast('Nichts zu verkaufen!', 'danger');
                 return;
             }
 
             try {
-                var response = await fetch('/Game/AjaxSellResource', {
+                var response = await fetch('/Game/AjaxQuickSell', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ resourceId: resourceId, amount: amount })
@@ -106,12 +99,7 @@
 
                 data.resources.forEach(function (res) {
                     var available = document.getElementById('available-' + res.id);
-                    var value = document.getElementById('value-' + res.id);
-                    var input = document.getElementById('sell-amount-' + res.id);
-
                     if (available) available.innerText = res.amount.toFixed(1);
-                    if (value) value.innerText = (res.amount * parseFloat(res.sellPrice)).toFixed(2);
-                    if (input) input.max = res.amount;
                 });
             } catch (e) { }
         }

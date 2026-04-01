@@ -205,7 +205,8 @@ namespace SEW04_Projekt_Bsteh.Migrations
                     AchievementProductionBonus = table.Column<double>(type: "REAL", nullable: false),
                     AchievementSellBonus = table.Column<double>(type: "REAL", nullable: false),
                     AchievementUpgradeDiscount = table.Column<double>(type: "REAL", nullable: false),
-                    AchievementStorageBonus = table.Column<double>(type: "REAL", nullable: false)
+                    AchievementStorageBonus = table.Column<double>(type: "REAL", nullable: false),
+                    ManualSellTotal = table.Column<double>(type: "REAL", nullable: false)
                 },
                 constraints: table =>
                 {

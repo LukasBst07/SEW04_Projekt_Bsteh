@@ -67,14 +67,16 @@ namespace SEW04_Projekt_Bsteh.Services
                 "Bäckermeister" =>
                     buildings.Any(b => b.Building.Name == "Bäckerei" && b.IsUnlocked),
 
+                "Vollständige Kette" =>
+                    buildings.Any(b => b.ProductionLevel >= 3
+                        || b.EfficiencyLevel >= 3
+                        || b.CapacityLevel >= 3),
+
                 "Erste 1000 Münzen" =>
                     farm.Money >= 1000,
 
-                "Erste 10000 Münzen" =>
+                "Sparfuchs" =>
                     farm.Money >= 10000,
-
-                "Vollständige Kette" =>
-                    buildings.Count(b => b.IsUnlocked) >= 3,
 
                 "Lagermeister" =>
                     resources.Any(r => r.Amount >= r.MaxStorage * 0.99),
@@ -85,7 +87,7 @@ namespace SEW04_Projekt_Bsteh.Services
                         || b.CapacityLevel >= 5),
 
                 "Markthändler" =>
-                    false,
+                    farm.ManualSellTotal >= 100,
 
                 _ => false
             };
